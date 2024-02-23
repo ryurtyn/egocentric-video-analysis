@@ -1,0 +1,62 @@
+﻿@page "/fileupload"
+@using hello_rusy.Data
+@using Azure.Storage.Blobs
+@using Azure.Storage.Blobs.Models
+@using Azure.Storage.Sas
+@using Azure.Storage
+@inject IConfiguration Configuration
+@inject NavigationManager Navigation
+
+<PageTitle>File upload</PageTitle>
+
+<h1>Upload</h1>
+
+<InputFile OnChange="HandleFileSelection" />
+<button @onclick="UploadFile">Upload</button>
+
+@if (uploadSuccess)
+{
+    <div class="alert alert-success" role="alert">
+        File uploaded successfully!
+    </div>
+}
+
+
+@code {
+    private IBrowserFile file;
+    private bool uploadSuccess = false;
+
+    private void HandleFileSelection(InputFileChangeEventArgs e)
+    {
+        file = e.File; // Store the first selected file
+    }
+
+    private async Task UploadFile()
+    {
+        if (file == null) return; // Check if a file has been selected
+
+        // Retrieve configuration settings
+        string blobUriString = Configuration["AzureBlobStorage:BlobUri"];
+        string sasToken = Configuration["AzureBlobStorage:SasToken"];
+
+        // Construct the full Blob URI including the file name and SAS Token
+        Uri blobUri = new Uri($"{blobUriString}/{file.Name}?{sasToken}");
+
+        // Create a BlobClient using the Blob URI with the SAS Token
+        BlobClient blobClient = new BlobClient(blobUri);
+
+        // Upload the file
+        await using (var stream = file.OpenReadStream(maxAllowedSize: 104857600)) // Adjust the maxAllowedSize as necessary
+        {
+            await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = file.ContentType });
+        }
+
+        uploadSuccess = true;
+
+        // Redirect to a success page or display a success message
+        Navigation.NavigateTo("/fileupload");
+    }
+
+}
+
+}
