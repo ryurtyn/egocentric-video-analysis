@@ -19,12 +19,24 @@
     <div class="alert alert-success" role="alert">
         File uploaded successfully!
     </div>
+    <p>
+        Filename: @uploadFileName
+    </p>
+} else if (fileSubmitted)
+{
+    <div class="alert alert-success" role="alert">
+        File uploading, Please wait.
+    </div>
 }
 
 
 @code {
     private IBrowserFile file;
+    private bool fileSubmitted = false;
     private bool uploadSuccess = false;
+    private string uploadFileName;
+    private string videoId;
+
 
     private void HandleFileSelection(InputFileChangeEventArgs e)
     {
@@ -33,14 +45,33 @@
 
     private async Task UploadFile()
     {
+        // TODO: make sure the filename is under 80 characters. If it goes over the limit, rename it (md5 hash) 
         if (file == null) return; // Check if a file has been selected
+        fileSubmitted = true;
 
         // Retrieve configuration settings
         string blobUriString = Configuration["AzureBlobStorage:BlobUri"];
         string sasToken = Configuration["AzureBlobStorage:SasToken"];
 
-        // Construct the full Blob URI including the file name and SAS Token
-        Uri blobUri = new Uri($"{blobUriString}/{file.Name}?{sasToken}");
+        // Generate the current timestamp
+        string timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+
+        // Extract file extension
+        string extension = Path.GetExtension(file.Name);
+        string filenameWithoutExtension = Path.GetFileNameWithoutExtension(file.Name);
+
+        // Ensure the filename is under 80 characters after adding the timestamp
+        // If it goes over the limit, you can hash the filename
+        // For simplicity, this example truncates the filename before appending the timestamp
+        int maxFilenameLength = 80 - timestamp.Length - extension.Length - 1; // -1 for the underscore
+                                                                              // If the filename is longer than 80 characters, truncate it 
+        string safeFilename = filenameWithoutExtension.Length > maxFilenameLength ? filenameWithoutExtension.Substring(0, maxFilenameLength) : filenameWithoutExtension;
+
+        // Append the timestamp to the filename
+        uploadFileName = $"{safeFilename}_{timestamp}{extension}";
+
+        // Construct the full Blob URI including the new file name and SAS Token
+        Uri blobUri = new Uri($"{blobUriString}/{uploadFileName}?{sasToken}");
 
         // Create a BlobClient using the Blob URI with the SAS Token
         BlobClient blobClient = new BlobClient(blobUri);
@@ -50,13 +81,18 @@
         {
             await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = file.ContentType });
         }
-
+        fileSubmitted = false;
         uploadSuccess = true;
+
+        videoId = await RetrieveVideoId(uploadFileName);
 
         // Redirect to a success page or display a success message
         Navigation.NavigateTo("/fileupload");
     }
 
-}
+    private async Task<string> RetrieveVideoId(string fileName)
+    {
 
+        return fileName;
+    }
 }

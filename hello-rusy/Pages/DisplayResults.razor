@@ -1,0 +1,156 @@
+﻿@page "/requestresults"
+@using hello_rusy.Data
+@using Microsoft.AspNetCore.WebUtilities
+
+@inject IConfiguration Configuration
+@inject NavigationManager Navigation
+@inject VideoIndexerService VideoIndexerServiceInstance
+@inject LanguageAIService LanguageAIServiceInstance
+
+
+<h3>Retrieve Video Indexer Results</h3>
+
+
+@if (responseReceived)
+{
+    <p>File Name: @fileName</p>
+    <p>State: @state</p>
+    <p>Summarized Title: @summarizedTitle</p>
+    <p>Transcript: </p>
+    <ul>
+        @foreach (var transcriptText in transcripts)
+        {
+            <li>@transcriptText</li>
+        }
+    </ul>
+    <p>Key Frames: </p>
+    <style>
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 10px;
+            padding-bottom: 20px;
+        }
+    </style>
+
+    @foreach (var shot in keyframeUrls)
+    {
+        <div class="image-grid">
+            @foreach (var im in shot)
+            {
+                <img src="@im" alt="Image" style="width: 100%; height: auto;">
+            }
+        </div>
+    }
+
+    <p>Topics: @topicsString</p>
+    <p>Keywords: @keywordsString</p>
+    <p>Labels: @labelsString</p>
+    <p>Sentiments: @sentimentsString</p>
+    <p>OCRs: @ocrsString</p>
+    <p>Detected Objects: @detectedObjectsString</p>
+}
+else
+{
+
+    <div>
+        <label for="videoId">Video Name:</label>
+        <input id="videoId" type="text" @bind="videoId" />
+    </div>
+
+    <button @onclick="Submit">Submit</button>
+}
+
+@code {
+    private string videoId;
+
+
+    private VideoIndexerResult videoInformation;
+    private string fileName;
+    private string state;
+    private List<string> transcripts;
+    //private List<string> keyframeUrls;
+    private List<List<string>> keyframeUrls;
+
+    private List<string> topics;
+    private string topicsString;
+
+    private List<string> labels;
+    private string labelsString;
+
+    private List<string> sentiments;
+    private string sentimentsString;
+
+    private List<string> keywords;
+    private string keywordsString;
+
+    private List<string> ocrs;
+    private string ocrsString;
+
+    private List<string> detectedObjects;
+    private string detectedObjectsString;
+
+    private bool responseReceived = false;
+
+    private TextSummarizerResult textSummaryResult;
+
+    private string summarizedTitle;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+
+        // Check if there's a query string parameter for the video ID
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("videoId", out var videoIds))
+        {
+            videoId = videoIds.First(); // Assuming you're passing a single ID
+            await Submit(); // Automatically fetch and display the results
+        }
+    }
+
+    private async Task Submit()
+    {
+
+        // need to do the auth key retrieval first
+
+        string accessToken = Configuration["VideoIndexer:AccessToken"];
+        string accountId = Configuration["VideoIndexer:AccountId"];
+        string location = Configuration["VideoIndexer:Location"];
+        string subscriptionKey = Configuration["VideoIndexer:SubscriptionKey"];
+
+        videoInformation = await VideoIndexerServiceInstance.GetVideoInsights(videoId, accessToken, accountId, location, subscriptionKey);
+        fileName = videoInformation.Name;
+        state = videoInformation.State;
+
+        transcripts = VideoIndexerServiceInstance.ExtractTranscriptTexts(videoInformation);
+
+        keyframeUrls = VideoIndexerServiceInstance.GetVideoKeyframesByShot(videoInformation, accessToken, accountId, location);
+        //keyframeUrls = VideoIndexerServiceInstance.GetVideoKeyframes(videoInformation, accessToken, accountId, location);
+
+        topics = VideoIndexerServiceInstance.GetTopics(videoInformation);
+        topicsString = String.Join(", ", topics);
+
+        labels = VideoIndexerServiceInstance.GetLabels(videoInformation);
+        labelsString = String.Join(", ", labels);
+
+        sentiments = VideoIndexerServiceInstance.GetSentiments(videoInformation);
+        sentimentsString = String.Join(", ", sentiments);
+
+        keywords = VideoIndexerServiceInstance.GetKeyWords(videoInformation);
+        keywordsString = String.Join(", ", keywords);
+
+        ocrs = VideoIndexerServiceInstance.GetOcr(videoInformation);
+        ocrsString = String.Join(", ", ocrs);
+
+        detectedObjects = VideoIndexerServiceInstance.GetDetectedObjects(videoInformation);
+        detectedObjectsString = String.Join(", ", detectedObjects);
+
+        string languageServiceSubscriptionKey = Configuration["LanguageAI:SubscriptionKey"];
+        textSummaryResult = await LanguageAIServiceInstance.getTextSummary(languageServiceSubscriptionKey, transcripts);
+        summarizedTitle = LanguageAIServiceInstance.GetSummarizedTitle(textSummaryResult);
+
+        responseReceived = true;
+
+    }
+
+}

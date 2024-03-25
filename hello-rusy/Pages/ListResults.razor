@@ -1,0 +1,61 @@
+﻿@page "/listvideos"
+@using hello_rusy.Data
+@inject IConfiguration Configuration
+@inject NavigationManager NavigationManager
+@inject VideoIndexerService VideoIndexerServiceInstance
+
+<PageTitle>Video Indexer Results</PageTitle>
+
+<h1>Video Indexer Results</h1>
+
+
+@if (videoIndexerList == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>State</th>
+                <th>Created</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var result in videoIndexerList.Results)
+            {
+                <tr>
+                    <td>
+                        <a href="" @onclick="(() => NavigateToDisplayResults(result.Name))">@result.Name</a>
+                    </td>
+                    <td>@result.State</td>
+                    <td>@result.Created.ToString("M/d/yyyy h:mm:ss tt")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private VideoIndexerList? videoIndexerList;
+
+    protected override async Task OnInitializedAsync()
+    {
+        string accessToken = Configuration["VideoIndexer:AccessToken"];
+        string accountId = Configuration["VideoIndexer:AccountId"];
+        string location = Configuration["VideoIndexer:Location"];
+        string subscriptionKey = Configuration["VideoIndexer:SubscriptionKey"];
+        videoIndexerList = await VideoIndexerServiceInstance.GetAllVideos(accessToken, accountId, location, subscriptionKey);
+
+    }
+
+    private void NavigateToDisplayResults(string videoName)
+    {
+        var uri = NavigationManager.ToAbsoluteUri($"/requestresults?videoId={Uri.EscapeDataString(videoName)}");
+        NavigationManager.NavigateTo(uri.ToString());
+    }
+
+}
+
