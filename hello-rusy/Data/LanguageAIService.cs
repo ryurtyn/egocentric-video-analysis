@@ -119,7 +119,6 @@ namespace hello_rusy.Data
             response.EnsureSuccessStatusCode();
 
             string? operationLocation = response.Headers.GetValues("operation-location").FirstOrDefault();
-            Console.Write("OPERATION LOCATION: " + operationLocation);
             
             return operationLocation!;
 
