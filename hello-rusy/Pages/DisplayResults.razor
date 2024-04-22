@@ -6,49 +6,70 @@
 @inject NavigationManager Navigation
 @inject VideoIndexerService VideoIndexerServiceInstance
 @inject LanguageAIService LanguageAIServiceInstance
+@inject OpenAIService OpenAIServiceInstance
 
 
-<h3>Retrieve Video Indexer Results</h3>
+<h3>Video Result</h3>
 
 
 @if (responseReceived)
 {
-    <p>File Name: @fileName</p>
-    <p>State: @state</p>
-    <p>Summarized Title: @summarizedTitle</p>
-    <p>Transcript: </p>
-    <ul>
-        @foreach (var transcriptText in transcripts)
+    @*<p>Chat Result: @openAIResult</p>*@
+<p>
+
+    Input:<br />
+
+    I'm going to be going home now, but here's what I worked on so far. <br />
+    I started this print job, and it's been running fine for ten minutes. <br />
+    So what you're going to need to do is check that the 3D print job succeeded.<br />
+    We want to make sure that the print came out smooth and doesn't have any gaps.<br />
+    If it is messy, you will need to clean it up.<br />
+    Make sure to throw the scraps into the recycling bin.<br />
+    Also please check that the screws are all tight and nothing has fallen off the printer.<br />
+</p>
+    <p>Chat Result: </p>
+    <ol>
+        @foreach (var todo in todos.ToDos)
         {
-            <li>@transcriptText</li>
+            <li>@todo.Task  @todo.Timestamp</li>
         }
-    </ul>
-    <p>Key Frames: </p>
-    <style>
-        .image-grid {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 10px;
-            padding-bottom: 20px;
-        }
-    </style>
-
-    @foreach (var shot in keyframeUrls)
-    {
-        <div class="image-grid">
-            @foreach (var im in shot)
+    </ol>
+    @*<p>File Name: @fileName</p>
+        <p>State: @state</p>
+        <p>Summarized Title: @summarizedTitle</p>
+        <p>Transcript: </p>
+        <ul>
+            @foreach (var transcriptText in transcripts)
             {
-                <img src="@im" alt="Image" style="width: 100%; height: auto;">
+                <li>@transcriptText</li>
             }
-        </div>
-    }
+        </ul>
+        <p>Key Frames: </p>
+        <style>
+            .image-grid {
+                display: grid;
+                grid-template-columns: repeat(8, 1fr);
+                gap: 10px;
+                padding-bottom: 20px;
+            }
+        </style>
 
-    <p>Topics: @topicsString</p>
-    <p>Keywords: @keywordsString</p>
-    <p>Labels: @labelsString</p>
-    <p>Sentiments: @sentimentsString</p>
-    <p>OCRs: @ocrsString</p>
-    <p>Detected Objects: @detectedObjectsString</p>
+        @foreach (var shot in keyframeUrls)
+        {
+            <div class="image-grid">
+                @foreach (var im in shot)
+                {
+                    <img src="@im" alt="Image" style="width: 100%; height: auto;">
+                }
+            </div>
+        }
+
+        <p>Topics: @topicsString</p>
+        <p>Keywords: @keywordsString</p>
+        <p>Labels: @labelsString</p>
+        <p>Sentiments: @sentimentsString</p>
+        <p>OCRs: @ocrsString</p>
+        <p>Detected Objects: @detectedObjectsString</p>*@
 }
 else
 {
@@ -69,6 +90,7 @@ else
     private string fileName;
     private string state;
     private List<string> transcripts;
+    private List<string> transcriptTimes;
     //private List<string> keyframeUrls;
     private List<List<string>> keyframeUrls;
 
@@ -95,6 +117,9 @@ else
     private TextSummarizerResult textSummaryResult;
 
     private string summarizedTitle;
+
+    private string openAIResult;
+    private ToDoList todos;
 
     protected override async Task OnInitializedAsync()
     {
@@ -123,31 +148,36 @@ else
         state = videoInformation.State;
 
         transcripts = VideoIndexerServiceInstance.ExtractTranscriptTexts(videoInformation);
+        transcriptTimes = VideoIndexerServiceInstance.ExtractTranscriptTimestamps(videoInformation);
 
-        keyframeUrls = VideoIndexerServiceInstance.GetVideoKeyframesByShot(videoInformation, accessToken, accountId, location);
-        //keyframeUrls = VideoIndexerServiceInstance.GetVideoKeyframes(videoInformation, accessToken, accountId, location);
+        //keyframeUrls = VideoIndexerServiceInstance.GetVideoKeyframesByShot(videoInformation, accessToken, accountId, location);
+        ////keyframeUrls = VideoIndexerServiceInstance.GetVideoKeyframes(videoInformation, accessToken, accountId, location);
 
-        topics = VideoIndexerServiceInstance.GetTopics(videoInformation);
-        topicsString = String.Join(", ", topics);
+        //topics = VideoIndexerServiceInstance.GetTopics(videoInformation);
+        //topicsString = String.Join(", ", topics);
 
-        labels = VideoIndexerServiceInstance.GetLabels(videoInformation);
-        labelsString = String.Join(", ", labels);
+        //labels = VideoIndexerServiceInstance.GetLabels(videoInformation);
+        //labelsString = String.Join(", ", labels);
 
-        sentiments = VideoIndexerServiceInstance.GetSentiments(videoInformation);
-        sentimentsString = String.Join(", ", sentiments);
+        //sentiments = VideoIndexerServiceInstance.GetSentiments(videoInformation);
+        //sentimentsString = String.Join(", ", sentiments);
 
-        keywords = VideoIndexerServiceInstance.GetKeyWords(videoInformation);
-        keywordsString = String.Join(", ", keywords);
+        //keywords = VideoIndexerServiceInstance.GetKeyWords(videoInformation);
+        //keywordsString = String.Join(", ", keywords);
 
-        ocrs = VideoIndexerServiceInstance.GetOcr(videoInformation);
-        ocrsString = String.Join(", ", ocrs);
+        //ocrs = VideoIndexerServiceInstance.GetOcr(videoInformation);
+        //ocrsString = String.Join(", ", ocrs);
 
-        detectedObjects = VideoIndexerServiceInstance.GetDetectedObjects(videoInformation);
-        detectedObjectsString = String.Join(", ", detectedObjects);
+        //detectedObjects = VideoIndexerServiceInstance.GetDetectedObjects(videoInformation);
+        //detectedObjectsString = String.Join(", ", detectedObjects);
 
-        string languageServiceSubscriptionKey = Configuration["LanguageAI:SubscriptionKey"];
-        textSummaryResult = await LanguageAIServiceInstance.getTextSummary(languageServiceSubscriptionKey, transcripts);
-        summarizedTitle = LanguageAIServiceInstance.GetSummarizedTitle(textSummaryResult);
+        //string languageServiceSubscriptionKey = Configuration["LanguageAI:SubscriptionKey"];
+        //textSummaryResult = await LanguageAIServiceInstance.getTextSummary(languageServiceSubscriptionKey, transcripts);
+        //summarizedTitle = LanguageAIServiceInstance.GetSummarizedTitle(textSummaryResult);
+
+        string openAIApiKey = Configuration["OpenAI:APIKey"];
+        todos = await OpenAIServiceInstance.RequestChatResponse(transcripts, transcriptTimes, openAIApiKey);
+        //todos = await OpenAIServiceInstance.RequestChatResponse("What is 2 + 2? ", openAIApiKey);
 
         responseReceived = true;
 

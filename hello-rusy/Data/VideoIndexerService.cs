@@ -93,6 +93,32 @@ namespace hello_rusy.Data
             return transcriptTexts;
         }
 
+        public List<string> ExtractTranscriptTimestamps(VideoIndexerResult videoIndexerResult)
+        {
+            List<string> transcriptTimes = new List<string>();
+
+            if (videoIndexerResult.Videos != null)
+            {
+                foreach (var video in videoIndexerResult.Videos)
+                {
+                    if (video.Insights?.Transcripts != null)
+                    {
+                        foreach (var transcriptItem in video.Insights.Transcripts)
+                        {
+                            if (transcriptItem.Instances != null)
+                            {
+                                transcriptTimes.Add(transcriptItem.Instances[0].Start);
+                                //transcriptTexts.Add(transcriptItem.Text);
+                                
+                            }
+                        }
+                    }
+                }
+            }
+
+            return transcriptTimes;
+        }
+
         public string GetKeyFrameUrl(string thumbnailId, string videoId, string accessToken, string accountId, string location)
         {
             string url = $"https://api.videoindexer.ai/{location}/Accounts/{accountId}/Videos/{videoId}/Thumbnails/{thumbnailId}?accessToken={accessToken}";

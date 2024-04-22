@@ -77,6 +77,9 @@ namespace hello_rusy.Data
     {
         [JsonPropertyName("text")]
         public string? Text { get; set; }
+
+        [JsonPropertyName("instances")]
+        public Instance[]? Instances { get; set; }
     }
 
     public partial class Ocr
