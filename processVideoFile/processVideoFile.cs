@@ -7,6 +7,8 @@ using Microsoft.Extensions.Logging;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 
 namespace processVideoFile
 {
@@ -14,6 +16,7 @@ namespace processVideoFile
     {
         private static readonly HttpClient client = new HttpClient();
 
+        // Function is triggered when a file is uploaded to the blob storage container 
         [FunctionName("processVideoFile")]
         public async Task Run([BlobTrigger("rusycontainertest/{name}.mp4", Connection = "ConnectionStrings:AzureBlobStorage")] Stream myBlob, string name, ILogger log, Uri uri)
         {
@@ -29,8 +32,15 @@ namespace processVideoFile
             //string bearerAuthKey = Environment.GetEnvironmentVariable("BearerAuthKey");
             try
             {
+                // Generate an ARM access token 
                 var accessToken = await GetAccessToken(apiKey, accountId, location, log);
-                await UploadVideoAndIndex(name, accessToken, accountId, location, log, uri);
+                log.LogInformation("access token generated");
+                // Upload video to Video Indexer
+                // TODO: uncomment this line when you want the video indexer running again.
+                //await UploadVideoAndIndex(name, accessToken, accountId, location, log, uri);
+                // TODO: upload metadata to azure storage
+                await SendToBlobStorage(name, uri, log);
+                log.LogInformation("blob uploaded");
             }
             catch (Exception ex)
             {
@@ -88,6 +98,41 @@ namespace processVideoFile
 
             string responseBody = await response.Content.ReadAsStringAsync();
             log.LogInformation($"Video uploaded and indexing started. Response: {responseBody}");
+        }
+
+        // takes in the filename+UID and creates new blob storage folder inside the location rusycontainertest/processed-video-information
+        // then creates a file called generalInfo.json in that folder that holds metadata (filename, video url, etc)
+        // TODO: write this method
+        public static async Task SendToBlobStorage(string filename, Uri uri, ILogger log)
+        {
+            // Create a BlobServiceClient
+            string storageConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings:AzureBlobStorage");
+            var blobServiceClient = new BlobServiceClient(storageConnectionString);
+
+            // Create or reference an existing container
+            var containerClient = blobServiceClient.GetBlobContainerClient("rusycontainertest");
+            //await containerClient.CreateIfNotExistsAsync(PublicAccessType.None);
+
+            // Define the directory path and the full blob name
+            string directoryPath = $"processed-video-information/{filename}";
+            string blobName = $"{directoryPath}/generalInfo.json";
+            log.LogInformation("Blob Name: " + blobName);
+            // Prepare the file content as JSON
+            var metadataContent = new
+            {
+                FileName = filename,
+                VideoUrl = uri
+            };
+
+            string jsonContent = JsonSerializer.Serialize(metadataContent);
+            log.LogInformation("Metadata: " + jsonContent);
+            byte[] byteArray = Encoding.UTF8.GetBytes(jsonContent);
+            using var ms = new MemoryStream(byteArray);
+
+            // Upload the generalInfo.json file to the directory
+            var blobClient = containerClient.GetBlobClient(blobName);
+            await blobClient.UploadAsync(ms, new BlobHttpHeaders { ContentType = "application/json" }, conditions: null);
+            log.LogInformation("File uploaded to Blob Storage.");
         }
     }
 }
