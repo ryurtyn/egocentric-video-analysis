@@ -52,12 +52,15 @@
         // Retrieve configuration settings
         string blobUriString = Configuration["AzureBlobStorage:BlobUri"];
         string sasToken = Configuration["AzureBlobStorage:SasToken"];
+        string blobConnectionString = Configuration["ConnectionStrings:AzureBlobStorage"];
 
         // Generate the current timestamp
         string timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
 
         // Extract file extension
-        string extension = Path.GetExtension(file.Name);
+        string extension = Path.GetExtension(file.Name).ToLower();
+        // TODO: add check that makes sure hte extention is .mp4 
+        Console.WriteLine("BLOB EXTENSION: " + extension);
         string filenameWithoutExtension = Path.GetFileNameWithoutExtension(file.Name);
 
         // Ensure the filename is under 80 characters after adding the timestamp
@@ -71,13 +74,22 @@
         uploadFileName = $"{safeFilename}_{timestamp}{extension}";
 
         // Construct the full Blob URI including the new file name and SAS Token
-        Uri blobUri = new Uri($"{blobUriString}/{uploadFileName}?{sasToken}");
+        var blobServiceClient = new BlobServiceClient(blobConnectionString);
 
+        // Create or reference an existing container
+        var containerClient = blobServiceClient.GetBlobContainerClient("rusycontainertest");
+        string blobName = $"input-video-files/{uploadFileName}";
+        //string blobName = $"{directoryPath}/generalInfo.json";
+        Console.WriteLine("Blob Name: " + blobName);
+
+        //Uri blobUri = new Uri($"{blobUriString}/{uploadFileName}?{sasToken}");
+        //Console.WriteLine("BLOB URI: ", blobUri);
         // Create a BlobClient using the Blob URI with the SAS Token
-        BlobClient blobClient = new BlobClient(blobUri);
+        var blobClient = containerClient.GetBlobClient(blobName);
+        //BlobClient blobClient = new BlobClient(blobUri);
 
         // Upload the file
-        await using (var stream = file.OpenReadStream(maxAllowedSize: 104857600)) // Adjust the maxAllowedSize as necessary
+        await using (var stream = file.OpenReadStream(maxAllowedSize: 155214716)) // Adjust the maxAllowedSize as necessary
         {
             await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = file.ContentType });
         }

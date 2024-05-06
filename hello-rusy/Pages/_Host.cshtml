@@ -30,6 +30,20 @@
     </div>
 
     <script src="_framework/blazor.server.js"></script>
+    <script>function setVideoCurrentTime(videoId, time) {
+            console.log("Video ID: " + videoId + ", Time: " + time);
+            const video = document.getElementById(videoId);
+            if (video) {
+                console.log("Old time: " + video.currentTime);
+                console.log("Time: " + time);
+                video.pause();
+                video.currentTime = time;
+                console.log("New Time: " + video.currentTime);
+            } else {
+                console.error('Video element not found');
+            }
+        }
+    </script>
 </body>
 </html>
 

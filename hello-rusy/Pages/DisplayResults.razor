@@ -4,36 +4,53 @@
 
 @inject IConfiguration Configuration
 @inject NavigationManager Navigation
-@inject VideoIndexerService VideoIndexerServiceInstance
-@inject LanguageAIService LanguageAIServiceInstance
-@inject OpenAIService OpenAIServiceInstance
+@inject VideoIndexerService videoIndexerServiceInstance
+@inject LanguageAIService languageAIServiceInstance
+@inject OpenAIService openAIServiceInstance
+@inject VideoMetadataService videoMetadataServiceInstance
 
+
+@inject IJSRuntime JS
 
 <h3>Video Result</h3>
-
+<style>
+    #myVideoPlayer {
+        width: 30%; /* Adjust the width to your preference */
+        margin: auto; /* This centers the video player horizontally */
+        display: block; /* Ensures the margin auto has the desired effect */
+    }
+</style>
 
 @if (responseReceived)
 {
     @*<p>Chat Result: @openAIResult</p>*@
-<p>
 
-    Input:<br />
+    <p>Tasks </p>
 
-    I'm going to be going home now, but here's what I worked on so far. <br />
-    I started this print job, and it's been running fine for ten minutes. <br />
-    So what you're going to need to do is check that the 3D print job succeeded.<br />
-    We want to make sure that the print came out smooth and doesn't have any gaps.<br />
-    If it is messy, you will need to clean it up.<br />
-    Make sure to throw the scraps into the recycling bin.<br />
-    Also please check that the screws are all tight and nothing has fallen off the printer.<br />
-</p>
-    <p>Chat Result: </p>
     <ol>
         @foreach (var todo in todos.ToDos)
-        {
-            <li>@todo.Task  @todo.Timestamp</li>
-        }
+            {
+            <li>
+                @todo.Task
+                @*<button @onclick="(() => GenerateInsights(result.Name))">&#9199; Play</button>*@
+                <button @onclick="() => SeekTo(todo.Timestamp)">&#9199;</button>
+            </li>
+            }
     </ol>
+
+    <video id="myVideoPlayer" controls @ref="videoElement" preload=auto> 
+        <source src="@videoUrl" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+
+    @*<p>Transcript: </p>
+    <ul>
+        @foreach (var transcriptText in transcripts)
+            {
+            <li>@transcriptText</li>
+            }
+    </ul>*@
     @*<p>File Name: @fileName</p>
         <p>State: @state</p>
         <p>Summarized Title: @summarizedTitle</p>
@@ -121,6 +138,13 @@ else
     private string openAIResult;
     private ToDoList todos;
 
+    private ElementReference videoElement;
+    public string videoUrl;
+
+    //[Parameter]
+    //public double StartTime { get; set; } = 0; // default to start at the beginning
+
+
     protected override async Task OnInitializedAsync()
     {
         var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
@@ -136,19 +160,29 @@ else
     private async Task Submit()
     {
 
-        // need to do the auth key retrieval first
 
-        string accessToken = Configuration["VideoIndexer:AccessToken"];
-        string accountId = Configuration["VideoIndexer:AccountId"];
-        string location = Configuration["VideoIndexer:Location"];
-        string subscriptionKey = Configuration["VideoIndexer:SubscriptionKey"];
+        string blobConnectionString = Configuration?["ConnectionStrings:AzureBlobStorage"] ?? "";
 
-        videoInformation = await VideoIndexerServiceInstance.GetVideoInsights(videoId, accessToken, accountId, location, subscriptionKey);
-        fileName = videoInformation.Name;
-        state = videoInformation.State;
+        VideoMetadataController videoMetadataControllerInstance = new VideoMetadataController(videoIndexerServiceInstance, openAIServiceInstance, videoMetadataServiceInstance, languageAIServiceInstance);
+        VideoMetadata videoMetadata = await videoMetadataControllerInstance.RetrieveGeneralMetadata(videoId, blobConnectionString);
+        videoUrl = videoMetadata.VideoUrl;
+        todos = await videoMetadataControllerInstance.RetrieveOpenAIMetadata(videoId, blobConnectionString);
 
-        transcripts = VideoIndexerServiceInstance.ExtractTranscriptTexts(videoInformation);
-        transcriptTimes = VideoIndexerServiceInstance.ExtractTranscriptTimestamps(videoInformation);
+
+
+        //// need to do the auth key retrieval first
+
+        //string accessToken = Configuration["VideoIndexer:AccessToken"];
+        //string accountId = Configuration["VideoIndexer:AccountId"];
+        //string location = Configuration["VideoIndexer:Location"];
+        //string subscriptionKey = Configuration["VideoIndexer:SubscriptionKey"];
+
+        //videoInformation = await VideoIndexerServiceInstance.GetVideoInsights(videoId, accessToken, accountId, location, subscriptionKey);
+        //fileName = videoInformation.Name;
+        //state = videoInformation.State;
+
+        //transcripts = VideoIndexerServiceInstance.ExtractTranscriptTexts(videoInformation);
+        //transcriptTimes = VideoIndexerServiceInstance.ExtractTranscriptTimestamps(videoInformation);
 
         //keyframeUrls = VideoIndexerServiceInstance.GetVideoKeyframesByShot(videoInformation, accessToken, accountId, location);
         ////keyframeUrls = VideoIndexerServiceInstance.GetVideoKeyframes(videoInformation, accessToken, accountId, location);
@@ -175,12 +209,40 @@ else
         //textSummaryResult = await LanguageAIServiceInstance.getTextSummary(languageServiceSubscriptionKey, transcripts);
         //summarizedTitle = LanguageAIServiceInstance.GetSummarizedTitle(textSummaryResult);
 
-        string openAIApiKey = Configuration["OpenAI:APIKey"];
-        todos = await OpenAIServiceInstance.RequestChatResponse(transcripts, transcriptTimes, openAIApiKey);
-        //todos = await OpenAIServiceInstance.RequestChatResponse("What is 2 + 2? ", openAIApiKey);
+        //string openAIApiKey = Configuration["OpenAI:APIKey"];
+        //todos = await OpenAIServiceInstance.RequestChatResponse(transcripts, transcriptTimes, openAIApiKey);
+        ////todos = await OpenAIServiceInstance.RequestChatResponse("What is 2 + 2? ", openAIApiKey);
+
+        //string blobConnectionString = Configuration["ConnectionStrings:AzureBlobStorage"];
+        //VideoUrl = await VideoMetadataServiceInstance.GetVideoUrl(fileName, blobConnectionString);
 
         responseReceived = true;
 
     }
 
+
+    //private async Task OnMetadataLoaded()
+    //{
+    //    await JS.InvokeVoidAsync("eval", $"document.getElementById('myVideoPlayer').currentTime = {StartTime};");
+    //}
+
+    private async Task SeekTo(string timestamp)
+    {
+        int timestampDouble = ConvertTimeToSeconds(timestamp);
+        //StartTime = timestampDouble;
+        Console.WriteLine("TIMESTAMP: " + timestampDouble);
+        await JS.InvokeVoidAsync("setVideoCurrentTime", "myVideoPlayer", timestampDouble.ToString());
+        //await JS.InvokeVoidAsync("eval", $"document.getElementById('myVideoPlayer').currentTime = {timestampDouble.ToString()};");
+    }
+
+    public static int ConvertTimeToSeconds(string time)
+    {
+        double totalSeconds = 0;
+        if (TimeSpan.TryParse(time, out TimeSpan result))
+        {
+            totalSeconds = result.TotalSeconds;
+        }
+
+        return (int)totalSeconds;
+    }
 }

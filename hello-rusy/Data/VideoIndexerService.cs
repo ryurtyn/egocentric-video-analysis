@@ -67,57 +67,57 @@ namespace hello_rusy.Data
         }
 
 
-        // Methods to manipulate video indexer result 
+        //// Methods to manipulate video indexer result 
 
-        public List<string> ExtractTranscriptTexts(VideoIndexerResult videoIndexerResult)
-        {
-            List<string> transcriptTexts = new List<string>();
+        //public List<string> ExtractTranscriptTexts(VideoIndexerResult videoIndexerResult)
+        //{
+        //    List<string> transcriptTexts = new List<string>();
 
-            if (videoIndexerResult.Videos != null)
-            {
-                foreach (var video in videoIndexerResult.Videos)
-                {
-                    if (video.Insights?.Transcripts != null)
-                    {
-                        foreach (var transcriptItem in video.Insights.Transcripts)
-                        {
-                            if (transcriptItem.Text != null)
-                            {
-                                transcriptTexts.Add(transcriptItem.Text);
-                            }
-                        }
-                    }
-                }
-            }
+        //    if (videoIndexerResult.Videos != null)
+        //    {
+        //        foreach (var video in videoIndexerResult.Videos)
+        //        {
+        //            if (video.Insights?.Transcripts != null)
+        //            {
+        //                foreach (var transcriptItem in video.Insights.Transcripts)
+        //                {
+        //                    if (transcriptItem.Text != null)
+        //                    {
+        //                        transcriptTexts.Add(transcriptItem.Text);
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
 
-            return transcriptTexts;
-        }
+        //    return transcriptTexts;
+        //}
 
-        public List<string> ExtractTranscriptTimestamps(VideoIndexerResult videoIndexerResult)
-        {
-            List<string> transcriptTimes = new List<string>();
+        //public List<string> ExtractTranscriptTimestamps(VideoIndexerResult videoIndexerResult)
+        //{
+        //    List<string> transcriptTimes = new List<string>();
 
-            if (videoIndexerResult.Videos != null)
-            {
-                foreach (var video in videoIndexerResult.Videos)
-                {
-                    if (video.Insights?.Transcripts != null)
-                    {
-                        foreach (var transcriptItem in video.Insights.Transcripts)
-                        {
-                            if (transcriptItem.Instances != null)
-                            {
-                                transcriptTimes.Add(transcriptItem.Instances[0].Start);
-                                //transcriptTexts.Add(transcriptItem.Text);
+        //    if (videoIndexerResult.Videos != null)
+        //    {
+        //        foreach (var video in videoIndexerResult.Videos)
+        //        {
+        //            if (video.Insights?.Transcripts != null)
+        //            {
+        //                foreach (var transcriptItem in video.Insights.Transcripts)
+        //                {
+        //                    if (transcriptItem.Instances != null)
+        //                    {
+        //                        transcriptTimes.Add(transcriptItem.Instances[0].Start);
+        //                        //transcriptTexts.Add(transcriptItem.Text);
                                 
-                            }
-                        }
-                    }
-                }
-            }
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
 
-            return transcriptTimes;
-        }
+        //    return transcriptTimes;
+        //}
 
         public string GetKeyFrameUrl(string thumbnailId, string videoId, string accessToken, string accountId, string location)
         {

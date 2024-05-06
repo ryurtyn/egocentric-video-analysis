@@ -2,6 +2,7 @@
 using System.Text.Json.Serialization;
 namespace hello_rusy.Data
 {
+
     public class ToDoList
     {
         [JsonPropertyName("todos")]
@@ -18,7 +19,6 @@ namespace hello_rusy.Data
 
         [JsonPropertyName("task")]
         public string Task { get; set; }
-
     }
 
     // Input for body to Chat Completion API Call 

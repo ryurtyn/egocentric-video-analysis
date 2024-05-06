@@ -12,6 +12,8 @@ builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddSingleton<VideoIndexerService>();
 builder.Services.AddSingleton<LanguageAIService>();
 builder.Services.AddSingleton<OpenAIService>();
+builder.Services.AddSingleton<VideoMetadataService>();
+builder.Services.AddSingleton<VideoMetadataController>();
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 
 var app = builder.Build();

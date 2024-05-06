@@ -9,6 +9,8 @@ using System.Text;
 using System.Text.Json;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace processVideoFile
 {
@@ -36,11 +38,11 @@ namespace processVideoFile
                 var accessToken = await GetAccessToken(apiKey, accountId, location, log);
                 log.LogInformation("access token generated");
                 // Upload video to Video Indexer
-                // TODO: uncomment this line when you want the video indexer running again.
-                //await UploadVideoAndIndex(name, accessToken, accountId, location, log, uri);
-                // TODO: upload metadata to azure storage
+                await UploadVideoAndIndex(name, accessToken, accountId, location, log, uri);
+                // Create metadata skeleton and upload to blob storage
                 await SendToBlobStorage(name, uri, log);
-                log.LogInformation("blob uploaded");
+                // Update the videos list to contain the new video
+                await UpdateVideosList(name, log);
             }
             catch (Exception ex)
             {
@@ -63,7 +65,7 @@ namespace processVideoFile
             client.DefaultRequestHeaders.Clear();
             string authorizationkey = Environment.GetEnvironmentVariable("BearerAuthKey");
             client.DefaultRequestHeaders.Add("Authorization", authorizationkey); // this is ARM token 
-            
+
             log.LogInformation($"line 1");
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
             request.Content = new StringContent("{permissionType: \"Contributor\",scope: \"Account\"}",
@@ -100,10 +102,7 @@ namespace processVideoFile
             log.LogInformation($"Video uploaded and indexing started. Response: {responseBody}");
         }
 
-        // takes in the filename+UID and creates new blob storage folder inside the location rusycontainertest/processed-video-information
-        // then creates a file called generalInfo.json in that folder that holds metadata (filename, video url, etc)
-        // TODO: write this method
-        public static async Task SendToBlobStorage(string filename, Uri uri, ILogger log)
+        public static async Task SendToBlobStorage(string filePath, Uri uri, ILogger log)
         {
             // Create a BlobServiceClient
             string storageConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings:AzureBlobStorage");
@@ -111,8 +110,20 @@ namespace processVideoFile
 
             // Create or reference an existing container
             var containerClient = blobServiceClient.GetBlobContainerClient("rusycontainertest");
-            //await containerClient.CreateIfNotExistsAsync(PublicAccessType.None);
 
+            // Split the full path by the '/' character
+            string[] parts = filePath.Split('/');
+
+            // The part after the '/' will be the last element of the array
+            string filename = "";
+            if (parts.Length > 1)
+            {
+                filename = parts[1]; // returns the second part, after the '/'
+            }
+            else
+            {
+                Console.WriteLine("FILENAME ERROR: " + filePath); // returns the original path if no '/' found
+            }
             // Define the directory path and the full blob name
             string directoryPath = $"processed-video-information/{filename}";
             string blobName = $"{directoryPath}/generalInfo.json";
@@ -133,6 +144,97 @@ namespace processVideoFile
             var blobClient = containerClient.GetBlobClient(blobName);
             await blobClient.UploadAsync(ms, new BlobHttpHeaders { ContentType = "application/json" }, conditions: null);
             log.LogInformation("File uploaded to Blob Storage.");
+
+            // One time, upload new mappings
+            //TitleMappings newTitleMapping = new TitleMappings()
+            //{
+            //    filesList = new List<Mapping>()
+            //};
+            //await UploadNewMappings(newTitleMapping, log);
+            // Update the title mappings to include the new video
+        }
+
+        /// <summary>
+        /// Probably need to restructure this stuff ! maybe put it in its own file
+        /// also this is a copy of the TitleMappings in hello rusy .data 
+        /// </summary>
+
+        public class TitleMappings
+        {
+            [JsonPropertyName("FilesList")]
+            public List<Mapping> filesList { get; set; }
+        }
+
+        public class Mapping
+        {
+            [JsonPropertyName("VideoName")]
+            public string videoName { get; set; }
+
+            [JsonPropertyName("SummarizedTitle")]
+            public string summarizedTitle { get; set; }
+
+            [JsonPropertyName("Created")]
+            public string created { get; set; }
+        }
+
+
+        public static async Task UpdateVideosList(string filePath, ILogger log)
+        {
+            TitleMappings titleMappings = await DownloadCurrentMappings(log);
+            Mapping newMapping = new Mapping()
+            {
+                videoName = filePath,
+                summarizedTitle = ""
+            };
+            // might be inefficient call 
+            titleMappings.filesList.Insert(0, newMapping);
+
+            await UploadNewMappings(titleMappings, log);
+
+        }
+
+        public static async Task<TitleMappings> DownloadCurrentMappings(ILogger log)
+        {
+            // Create a BlobServiceClient
+            string storageConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings:AzureBlobStorage");
+            var blobServiceClient = new BlobServiceClient(storageConnectionString);
+
+            // Create or reference an existing container
+            var containerClient = blobServiceClient.GetBlobContainerClient("rusycontainertest");
+
+            string blobName = $"processed-video-information/titleMappings.json";
+            var blobClient = containerClient.GetBlobClient(blobName);
+            BlobDownloadInfo download = await blobClient.DownloadAsync();
+
+            string json;
+            // Deserialize the JSON content to an VideoMetadata object
+            using (var streamReader = new StreamReader(download.Content))
+            {
+                json = await streamReader.ReadToEndAsync();
+            }
+
+            // serialize it as whatever structure you give it
+            TitleMappings titleMappings = JsonSerializer.Deserialize<TitleMappings>(json);
+            return titleMappings;
+        }
+
+
+        public static async Task UploadNewMappings(TitleMappings updatedMappings, ILogger log)
+        {
+            // Create a BlobServiceClient
+            string storageConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings:AzureBlobStorage");
+            var blobServiceClient = new BlobServiceClient(storageConnectionString);
+
+            // Create or reference an existing container
+            var containerClient = blobServiceClient.GetBlobContainerClient("rusycontainertest");
+
+            string jsonContent = JsonSerializer.Serialize(updatedMappings);
+            byte[] byteArray = Encoding.UTF8.GetBytes(jsonContent);
+            using var ms = new MemoryStream(byteArray);
+
+            string blobName = $"processed-video-information/titleMappings.json";
+            var blobClient = containerClient.GetBlobClient(blobName);
+            await blobClient.UploadAsync(ms, new BlobHttpHeaders { ContentType = "application/json" }, conditions: null);
         }
     }
 }
