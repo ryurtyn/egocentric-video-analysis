@@ -10,6 +10,9 @@ namespace hello_rusy.Data
 
         [JsonPropertyName("VideoUrl")]
         public string VideoUrl { get; set; }
+
+        [JsonPropertyName("SummarizedTitle")]
+        public string SummarizedTitle { get; set; }
     }
 }
 

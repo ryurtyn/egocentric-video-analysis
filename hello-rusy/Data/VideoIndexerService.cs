@@ -119,89 +119,89 @@ namespace hello_rusy.Data
         //    return transcriptTimes;
         //}
 
-        public string GetKeyFrameUrl(string thumbnailId, string videoId, string accessToken, string accountId, string location)
-        {
-            string url = $"https://api.videoindexer.ai/{location}/Accounts/{accountId}/Videos/{videoId}/Thumbnails/{thumbnailId}?accessToken={accessToken}";
-            return url;
-        }
+        //public string GetKeyFrameUrl(string thumbnailId, string videoId, string accessToken, string accountId, string location)
+        //{
+        //    string url = $"https://api.videoindexer.ai/{location}/Accounts/{accountId}/Videos/{videoId}/Thumbnails/{thumbnailId}?accessToken={accessToken}";
+        //    return url;
+        //}
 
-        public List<string> GetVideoKeyframes(VideoIndexerResult videoIndexerResult, string accessToken, string accountId, string location)
-        {
-            string thumbnailId;
-            string thumbnailUrl;
-            string videoId = videoIndexerResult.VideoId!;
-            List<string> keyFrameUrls = new List<string>();
+        //public List<string> GetVideoKeyframes(VideoIndexerResult videoIndexerResult, string accessToken, string accountId, string location)
+        //{
+        //    string thumbnailId;
+        //    string thumbnailUrl;
+        //    string videoId = videoIndexerResult.VideoId!;
+        //    List<string> keyFrameUrls = new List<string>();
 
-            if (videoIndexerResult.Videos != null)
-            {
-                foreach (var video in videoIndexerResult.Videos)
-                {
-                    if (video.Insights?.Shots != null)
-                    {
-                        foreach (var shot in video.Insights.Shots)
-                        {
-                            if ((shot.KeyFrames != null))
-                            {
-                                foreach (var keyFrame in shot.KeyFrames)
-                                {
-                                    if (keyFrame.Instances != null)
-                                    {
-                                        foreach (var currentInstance in keyFrame.Instances)
-                                        {
-                                            thumbnailId = currentInstance.ThumbnailId.ToString()!;
-                                            thumbnailUrl = GetKeyFrameUrl(thumbnailId, videoId, accessToken, accountId, location);
-                                            keyFrameUrls.Add(thumbnailUrl);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        //    if (videoIndexerResult.Videos != null)
+        //    {
+        //        foreach (var video in videoIndexerResult.Videos)
+        //        {
+        //            if (video.Insights?.Shots != null)
+        //            {
+        //                foreach (var shot in video.Insights.Shots)
+        //                {
+        //                    if ((shot.KeyFrames != null))
+        //                    {
+        //                        foreach (var keyFrame in shot.KeyFrames)
+        //                        {
+        //                            if (keyFrame.Instances != null)
+        //                            {
+        //                                foreach (var currentInstance in keyFrame.Instances)
+        //                                {
+        //                                    thumbnailId = currentInstance.ThumbnailId.ToString()!;
+        //                                    thumbnailUrl = GetKeyFrameUrl(thumbnailId, videoId, accessToken, accountId, location);
+        //                                    keyFrameUrls.Add(thumbnailUrl);
+        //                                }
+        //                            }
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
 
-            return keyFrameUrls;
-        }
+        //    return keyFrameUrls;
+        //}
 
-        public List<List<string>> GetVideoKeyframesByShot(VideoIndexerResult videoIndexerResult, string accessToken, string accountId, string location)
-        {
-            string thumbnailId;
-            string thumbnailUrl;
-            string videoId = videoIndexerResult.VideoId!;
-            List<List<string>> keyFrameUrls = new List<List<string>>();
+        //public List<List<string>> GetVideoKeyframesByShot(VideoIndexerResult videoIndexerResult, string accessToken, string accountId, string location)
+        //{
+        //    string thumbnailId;
+        //    string thumbnailUrl;
+        //    string videoId = videoIndexerResult.VideoId!;
+        //    List<List<string>> keyFrameUrls = new List<List<string>>();
 
-            if (videoIndexerResult.Videos != null)
-            {
-                foreach (var video in videoIndexerResult.Videos)
-                {
-                    if (video.Insights?.Shots != null)
-                    {
-                        foreach (var shot in video.Insights.Shots)
-                        {
-                            List<string> shotList = new List<string>();
-                            if ((shot.KeyFrames != null))
-                            {
-                                foreach (var keyFrame in shot.KeyFrames)
-                                {
-                                    if (keyFrame.Instances != null)
-                                    {
-                                        foreach (var currentInstance in keyFrame.Instances)
-                                        {
-                                            thumbnailId = currentInstance.ThumbnailId.ToString()!;
-                                            thumbnailUrl = GetKeyFrameUrl(thumbnailId, videoId, accessToken, accountId, location);
-                                            shotList.Add(thumbnailUrl);
-                                        }
-                                    }
-                                }
-                            }
-                            keyFrameUrls.Add(shotList);
-                        }
-                    }
-                }
-            }
+        //    if (videoIndexerResult.Videos != null)
+        //    {
+        //        foreach (var video in videoIndexerResult.Videos)
+        //        {
+        //            if (video.Insights?.Shots != null)
+        //            {
+        //                foreach (var shot in video.Insights.Shots)
+        //                {
+        //                    List<string> shotList = new List<string>();
+        //                    if ((shot.KeyFrames != null))
+        //                    {
+        //                        foreach (var keyFrame in shot.KeyFrames)
+        //                        {
+        //                            if (keyFrame.Instances != null)
+        //                            {
+        //                                foreach (var currentInstance in keyFrame.Instances)
+        //                                {
+        //                                    thumbnailId = currentInstance.ThumbnailId.ToString()!;
+        //                                    thumbnailUrl = GetKeyFrameUrl(thumbnailId, videoId, accessToken, accountId, location);
+        //                                    shotList.Add(thumbnailUrl);
+        //                                }
+        //                            }
+        //                        }
+        //                    }
+        //                    keyFrameUrls.Add(shotList);
+        //                }
+        //            }
+        //        }
+        //    }
 
-            return keyFrameUrls;
-        }
+        //    return keyFrameUrls;
+        //}
 
         public List<string> GetOcr(VideoIndexerResult videoIndexerResult)
         {

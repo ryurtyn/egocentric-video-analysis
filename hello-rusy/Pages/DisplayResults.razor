@@ -12,81 +12,62 @@
 
 @inject IJSRuntime JS
 
-<h3>Video Result</h3>
-<style>
-    #myVideoPlayer {
-        width: 30%; /* Adjust the width to your preference */
-        margin: auto; /* This centers the video player horizontally */
-        display: block; /* Ensures the margin auto has the desired effect */
-    }
-</style>
+<h1>@summarizedTitle</h1>
+@*// TODO: MAKE THIS SUMMARIZED TITLE*@
+@*<style>
+        #myVideoPlayer {
+            width: 30%; /* Adjust the width to your preference */
+            margin: auto; /* This centers the video player horizontally */
+            display: block; /* Ensures the margin auto has the desired effect */
+        }
+    </style>*@
 
 @if (responseReceived)
 {
     @*<p>Chat Result: @openAIResult</p>*@
 
-    <p>Tasks </p>
-
-    <ol>
-        @foreach (var todo in todos.ToDos)
-            {
-            <li>
-                @todo.Task
-                @*<button @onclick="(() => GenerateInsights(result.Name))">&#9199; Play</button>*@
-                <button @onclick="() => SeekTo(todo.Timestamp)">&#9199;</button>
-            </li>
-            }
-    </ol>
-
-    <video id="myVideoPlayer" controls @ref="videoElement" preload=auto> 
-        <source src="@videoUrl" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
-
-
-    @*<p>Transcript: </p>
-    <ul>
-        @foreach (var transcriptText in transcripts)
-            {
-            <li>@transcriptText</li>
-            }
-    </ul>*@
-    @*<p>File Name: @fileName</p>
-        <p>State: @state</p>
-        <p>Summarized Title: @summarizedTitle</p>
-        <p>Transcript: </p>
-        <ul>
-            @foreach (var transcriptText in transcripts)
-            {
-                <li>@transcriptText</li>
-            }
-        </ul>
-        <p>Key Frames: </p>
-        <style>
-            .image-grid {
-                display: grid;
-                grid-template-columns: repeat(8, 1fr);
-                gap: 10px;
-                padding-bottom: 20px;
-            }
-        </style>
-
-        @foreach (var shot in keyframeUrls)
-        {
-            <div class="image-grid">
-                @foreach (var im in shot)
+    <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+        <div style="flex: 3; min-width: 300px;">
+            <h2>Tasks</h2>
+            <ol>
+                @foreach (var todo in todos.ToDos)
                 {
-                    <img src="@im" alt="Image" style="width: 100%; height: auto;">
+                    <li>
+                        @todo.Task
+                        <button @onclick="() => SeekTo(todo.Timestamp)">&#9199;</button>
+                    </li>
                 }
-            </div>
-        }
+            </ol>
+        </div>
 
-        <p>Topics: @topicsString</p>
-        <p>Keywords: @keywordsString</p>
-        <p>Labels: @labelsString</p>
-        <p>Sentiments: @sentimentsString</p>
-        <p>OCRs: @ocrsString</p>
-        <p>Detected Objects: @detectedObjectsString</p>*@
+        <div style="flex: 2; min-width: 300px;">
+            <video id="myVideoPlayer" controls @ref="videoElement" preload="auto" style="width: 100%;">
+                <source src="@videoUrl" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+    </div>
+
+    <h2>Key Frames: </h2>
+    <style>
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 10px;
+            padding-bottom: 20px;
+        }
+    </style>
+
+    @foreach (var shot in keyframeUrls)
+    {
+        <div class="image-grid">
+            @foreach (var im in shot)
+            {
+                <img src="@im" alt="Image" style="width: 100%; height: auto;">
+            }
+        </div>
+    }
+
 }
 else
 {
@@ -108,7 +89,6 @@ else
     private string state;
     private List<string> transcripts;
     private List<string> transcriptTimes;
-    //private List<string> keyframeUrls;
     private List<List<string>> keyframeUrls;
 
     private List<string> topics;
@@ -159,15 +139,17 @@ else
 
     private async Task Submit()
     {
-
-
         string blobConnectionString = Configuration?["ConnectionStrings:AzureBlobStorage"] ?? "";
 
         VideoMetadataController videoMetadataControllerInstance = new VideoMetadataController(videoIndexerServiceInstance, openAIServiceInstance, videoMetadataServiceInstance, languageAIServiceInstance);
         VideoMetadata videoMetadata = await videoMetadataControllerInstance.RetrieveGeneralMetadata(videoId, blobConnectionString);
-        videoUrl = videoMetadata.VideoUrl;
+        videoUrl = videoMetadata.VideoUrl; // TODO: PROBABLY NOT SECURE
+        summarizedTitle = videoMetadata.SummarizedTitle;
         todos = await videoMetadataControllerInstance.RetrieveOpenAIMetadata(videoId, blobConnectionString);
+        VideoIndexerMetadata videoIndexerMetadata = await videoMetadataControllerInstance.RetrieveVideoIndexerMetadata(videoId, blobConnectionString);
+        keyframeUrls = videoIndexerMetadata.KeyframeShots;
 
+        
 
 
         //// need to do the auth key retrieval first

@@ -47,7 +47,7 @@ namespace hello_rusy.Data
             // TODO: GenerateGeneralMetadata
             //bool generalSuccess = await GenerateGeneralMetadata(videoName, blobConnectionString);
             // TODO: GenerateLanguageServiceMetadata
-            TextSummarizerResult textSummaryResult = await GenerateTitleSummary(videoName, transcripts, languageServiceAPIKey, blobConnectionString);
+            string textSummaryResult = await GenerateTitleSummary(videoName, transcripts, languageServiceAPIKey, blobConnectionString);
             // TODO: call update videos list with the updated summarized title to update 
             // return ??? maybe a json of all the jsons? or have a separate public class for each that will be called by the uploader
 
@@ -64,7 +64,7 @@ namespace hello_rusy.Data
         public async Task<VideoIndexerMetadata> GenerateVideoIndexerMetadata(string videoName, string accessToken, string accountId, string location, string subscriptionKey, string blobConnectionString)
         {
             VideoIndexerResult videoIndexerResult = await videoIndexerServiceInstance.GetVideoInsights(videoName, accessToken, accountId, location, subscriptionKey);
-            VideoIndexerMetadata videoIndexerMetadata = videoIndexerResult.ConvertToVideoIndexerMetadata();
+            VideoIndexerMetadata videoIndexerMetadata = videoIndexerResult.ConvertToVideoIndexerMetadata(accessToken, accountId, location);
             string videoIndexerJson = JsonSerializer.Serialize(videoIndexerMetadata);
             await videoMetadataServiceInstance.UploadMetadata(videoName, "videoIndexerMetadata.json", videoIndexerJson, blobConnectionString);
             Console.WriteLine("VIDEO NAME: " + videoName);
@@ -108,12 +108,18 @@ namespace hello_rusy.Data
             return videoMetadata;
         }
 
-        public async Task<TextSummarizerResult> GenerateTitleSummary(string videoName, List<string> transcripts, string languageServiceAPIKey, string blobConnectionString)
+        public async Task<string> GenerateTitleSummary(string videoName, List<string> transcripts, string languageServiceAPIKey, string blobConnectionString)
         {
             TextSummarizerResult textSummaryResult = await languageAIServiceInstance.getTextSummary(languageServiceAPIKey, transcripts);
             string summarizedTitle = languageAIServiceInstance.GetSummarizedTitle(textSummaryResult);
             await videoMetadataServiceInstance.UpdateTitleMappings(videoName, summarizedTitle, blobConnectionString);
-            return textSummaryResult;
+
+            VideoMetadata generalMetadata = await RetrieveGeneralMetadata(videoName, blobConnectionString);
+            generalMetadata.SummarizedTitle = summarizedTitle;
+            string generalMetadataJson = JsonSerializer.Serialize(generalMetadata);
+            await videoMetadataServiceInstance.UploadMetadata(videoName, "generalInfo.json", generalMetadataJson, blobConnectionString);
+
+            return summarizedTitle;
         }
 
         public async Task<TitleMappings> RetrieveTitleMappings(string blobConnectionString)

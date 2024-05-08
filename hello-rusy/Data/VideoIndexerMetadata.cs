@@ -10,6 +10,11 @@ namespace hello_rusy.Data
 
         [JsonPropertyName("timestamps")]
         public List<string> Timestamps { get; set; }
+
+        [JsonPropertyName("keyframeShots")]
+        public List<List<string>> KeyframeShots { get; set; }
+
+
     }
 }
 
