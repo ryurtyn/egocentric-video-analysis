@@ -9,7 +9,7 @@
 
 <PageTitle>Team Updates</PageTitle>
 
-<link href="styles.css" rel="stylesheet" />
+@*<link href="styles.css" rel="stylesheet" />*@
 <h1>Team Updates</h1>
 
 @if (titleMappings == null)
@@ -46,7 +46,7 @@ else
                         <!-- Button to trigger data processing -->
                         @if (!(mapping.isProcessing))
                             {
-                                <button @onclick="(async () => await ProcessButtonClick(mapping))"> Process</button>
+                                <button class="btn-primary"  @onclick="(async () => await ProcessButtonClick(mapping))"> Process</button>
                             } else
                             {
 

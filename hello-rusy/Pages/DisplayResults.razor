@@ -11,7 +11,7 @@
 
 
 @inject IJSRuntime JS
-
+@*<link href="styles.css" rel="stylesheet" />*@
 <h1>@summarizedTitle</h1>
 @*// TODO: MAKE THIS SUMMARIZED TITLE*@
 @*<style>
@@ -25,28 +25,36 @@
 @if (responseReceived)
 {
     @*<p>Chat Result: @openAIResult</p>*@
-
+    <h2>Tasks</h2>
     <div style="display: flex; flex-wrap: wrap; gap: 20px;">
         <div style="flex: 3; min-width: 300px;">
-            <h2>Tasks</h2>
+
             <ol>
                 @foreach (var todo in todos.ToDos)
                 {
                     <li>
+                        <button class="btn-primary" @onclick="() => SeekTo(todo.Timestamp)">&#9199;</button>
                         @todo.Task
-                        <button @onclick="() => SeekTo(todo.Timestamp)">&#9199;</button>
                     </li>
                 }
             </ol>
         </div>
 
-        <div style="flex: 2; min-width: 300px;">
+        <div style="flex: 2; min-width: 300px; max-width: 600px;">
             <video id="myVideoPlayer" controls @ref="videoElement" preload="auto" style="width: 100%;">
                 <source src="@videoUrl" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
         </div>
     </div>
+
+    <h2>Transcripts</h2>
+    <p>
+        @foreach (var t in transcripts)
+        {
+            @t
+        }
+    </p>
 
     <h2>Key Frames: </h2>
     <style>
@@ -67,6 +75,8 @@
             }
         </div>
     }
+
+
 
 }
 else
@@ -149,7 +159,7 @@ else
         VideoIndexerMetadata videoIndexerMetadata = await videoMetadataControllerInstance.RetrieveVideoIndexerMetadata(videoId, blobConnectionString);
         keyframeUrls = videoIndexerMetadata.KeyframeShots;
 
-        
+        transcripts = videoIndexerMetadata.Transcripts;
 
 
         //// need to do the auth key retrieval first
