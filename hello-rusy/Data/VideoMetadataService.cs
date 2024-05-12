@@ -130,6 +130,52 @@ namespace hello_rusy.Data
             await blobClient.UploadAsync(ms, new BlobHttpHeaders { ContentType = "application/json" }, conditions: null);
         }
 
+        public async Task UpdateTitleMappingsProcessTime(string videoName, DateTime processedTime, string blobConnectionString)
+        {
+            // get the videos <-> summaries mapping json from blob storage
+            // Create a BlobServiceClient
+            var blobServiceClient = new BlobServiceClient(blobConnectionString);
+
+            // Create or reference an existing container
+            var containerClient = blobServiceClient.GetBlobContainerClient("rusycontainertest");
+
+            // Construct the path to the generalInfo.json file
+            // TODO: can make this a configuration later (processed-video-information) 
+            string blobName = $"processed-video-information/titleMappings.json";
+            Console.WriteLine("BLOB NAME: " + blobName);
+            var blobClient = containerClient.GetBlobClient(blobName);
+
+            // Download the blob's content
+            BlobDownloadInfo download = await blobClient.DownloadAsync();
+
+            string json;
+            // Deserialize the JSON content to an VideoMetadata object
+            using (var streamReader = new StreamReader(download.Content))
+            {
+                json = await streamReader.ReadToEndAsync();
+            }
+
+            // serialize it as whatever structure you give it
+            TitleMappings titleMappings = JsonSerializer.Deserialize<TitleMappings>(json);
+            // add to the (front of) list of pairings
+            foreach (Mapping mapping in titleMappings.filesList)
+            {
+                if (mapping.videoName.Equals(videoName))
+                {
+                    mapping.ProcessedDate = processedTime;
+                }
+            }
+
+            // upload to update the file
+            string jsonContent = JsonSerializer.Serialize(titleMappings);
+            byte[] byteArray = Encoding.UTF8.GetBytes(jsonContent);
+            using var ms = new MemoryStream(byteArray);
+
+            // Upload the generalInfo.json file to the directory
+            await blobClient.UploadAsync(ms, new BlobHttpHeaders { ContentType = "application/json" }, conditions: null);
+        }
+
+
         public async Task<string> DownloadTitleMappings(string blobConnectionString)
         {
             // Create a BlobServiceClient

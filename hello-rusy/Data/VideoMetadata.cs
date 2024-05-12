@@ -13,6 +13,13 @@ namespace hello_rusy.Data
 
         [JsonPropertyName("SummarizedTitle")]
         public string SummarizedTitle { get; set; }
+
+        [JsonPropertyName("CreatedDate")]
+        public DateTime CreatedDate { get; set; }
+
+        [JsonPropertyName("ProcessedDate")]
+        public DateTime ProcessedDate { get; set; }
+
     }
 }
 

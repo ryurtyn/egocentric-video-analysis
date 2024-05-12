@@ -226,77 +226,77 @@ namespace hello_rusy.Data
         }
 
 
-        public List<string> GetKeyWords(VideoIndexerResult videoIndexerResult)
-        {
-            List<string> keywords = new List<string>();
-            if (videoIndexerResult.Videos != null)
-            {
-                foreach (var video in videoIndexerResult.Videos)
-                {
-                    if (video.Insights?.Keywords != null)
-                    {
-                        foreach (var keyword in video.Insights.Keywords)
-                        {
-                            if (keyword.Text != null)
-                            {
-                                keywords.Add(keyword.Text);
-                            }
-                        }
-                    }
-                }
-            }
-            return keywords;
-        }
+        //public List<string> GetKeyWords(VideoIndexerResult videoIndexerResult)
+        //{
+        //    List<string> keywords = new List<string>();
+        //    if (videoIndexerResult.Videos != null)
+        //    {
+        //        foreach (var video in videoIndexerResult.Videos)
+        //        {
+        //            if (video.Insights?.Keywords != null)
+        //            {
+        //                foreach (var keyword in video.Insights.Keywords)
+        //                {
+        //                    if (keyword.Text != null)
+        //                    {
+        //                        keywords.Add(keyword.Text);
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
+        //    return keywords;
+        //}
 
 
-        public List<string> GetTopics(VideoIndexerResult videoIndexerResult)
-        {
-            List<string> topics = new List<string>();
-            if (videoIndexerResult.Videos != null)
-            {
-                foreach (var video in videoIndexerResult.Videos)
-                {
-                    if (video.Insights?.Topics != null)
-                    {
-                        foreach (var topic in video.Insights.Topics)
-                        {
-                            if ((topic.Name != null))
-                            {
-                                topics.Add(topic.Name);
-                            }
-                        }
-                    }
-                }
-            }
-            return topics;
-        }
+        //public List<string> GetTopics(VideoIndexerResult videoIndexerResult)
+        //{
+        //    List<string> topics = new List<string>();
+        //    if (videoIndexerResult.Videos != null)
+        //    {
+        //        foreach (var video in videoIndexerResult.Videos)
+        //        {
+        //            if (video.Insights?.Topics != null)
+        //            {
+        //                foreach (var topic in video.Insights.Topics)
+        //                {
+        //                    if ((topic.Name != null))
+        //                    {
+        //                        topics.Add(topic.Name);
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
+        //    return topics;
+        //}
 
         public List<string> GetFaces(VideoIndexerResult videoIndexerResult)
         {
             return new List<string>();
         }
 
-        public List<string> GetLabels(VideoIndexerResult videoIndexerResult)
-        {
-            List<string> labels = new List<string>();
-            if (videoIndexerResult.Videos != null)
-            {
-                foreach (var video in videoIndexerResult.Videos)
-                {
-                    if (video.Insights?.Labels != null)
-                    {
-                        foreach (var label in video.Insights.Labels)
-                        {
-                            if (label.Name != null)
-                            {
-                                labels.Add(label.Name);
-                            }
-                        }
-                    }
-                }
-            }
-            return labels;
-        }
+        //public List<string> GetLabels(VideoIndexerResult videoIndexerResult)
+        //{
+        //    List<string> labels = new List<string>();
+        //    if (videoIndexerResult.Videos != null)
+        //    {
+        //        foreach (var video in videoIndexerResult.Videos)
+        //        {
+        //            if (video.Insights?.Labels != null)
+        //            {
+        //                foreach (var label in video.Insights.Labels)
+        //                {
+        //                    if (label.Name != null)
+        //                    {
+        //                        labels.Add(label.Name);
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
+        //    return labels;
+        //}
 
         public List<string> GetScenes(VideoIndexerResult videoIndexerResult)
         {

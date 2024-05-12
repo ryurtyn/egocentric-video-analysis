@@ -7,10 +7,10 @@
 @inject OpenAIService openAIServiceInstance
 @inject LanguageAIService languageAIServiceInstance
 
-<PageTitle>Team Updates</PageTitle>
+<PageTitle>Procedural Task Videos</PageTitle>
 
 @*<link href="styles.css" rel="stylesheet" />*@
-<h1>Team Updates</h1>
+<h1>Procedural Task Videos</h1>
 
 @if (titleMappings == null)
 {
@@ -20,41 +20,58 @@ else
 {
      <table class="table" >
     <thead >
-    <tr >
-    <th > Title</th >
-    <th > Actions</th > <!-- New column for actions -->
-    </tr >
+        <tr>
+            <th> Title</th>
+            <th> Created On</th>
+            <th> Last Processed</th>
+            <!--<th> Actions</th>--> <!-- New column for actions -->
+        </tr>
     </thead >
     <tbody >
     @foreach (var mapping in titleMappings.filesList)
         {
-                <tr >
-                <td >
-                @if (mapping.summarizedTitle != "")
-                {
-
-                        <a href="" @onclick="(() => NavigateToDisplayResults(mapping.videoName))" >@mapping.summarizedTitle </a >
-                }
-                else
-                {
-                        <a href="" @onclick="(() => NavigateToDisplayResults(mapping.videoName))" >@mapping.videoName </a >
-                }
-                </td >
-                @*<td>@result.State</td>
-                <td>@result.Created.ToString("M/d/yyyy h:mm:ss tt")</td>*@
+                <tr>
                     <td>
-                        <!-- Button to trigger data processing -->
-                        @if (!(mapping.isProcessing))
-                            {
-                                <button class="btn-primary"  @onclick="(async () => await ProcessButtonClick(mapping))"> Process</button>
-                            } else
-                            {
+                        @if (mapping.summarizedTitle != "")
+                        {
 
-                               <span class="spinner"></span>
-                            }
-                        @*<button @onclick="(() => await GenerateInsights(mapping.videoName))">Process</button>*@
+                            <a href="" @onclick="(() => NavigateToDisplayResults(mapping.videoName))">@mapping.summarizedTitle </a>
+                        }
+                        else
+                        {
+                            <a href="" @onclick="(() => NavigateToDisplayResults(mapping.videoName))">@mapping.videoName </a>
+                        }
                     </td>
-            </tr >
+                    <td>
+                        @if (mapping.CreatedDate != null)
+                        {
+
+                            @mapping.CreatedDate
+                        }
+                    </td>
+                    <td>
+                        @if (mapping.ProcessedDate != null)
+                        {
+
+                            @mapping.ProcessedDate
+                        }
+                    </td>
+
+                    <!--<td>
+                        <!-- Button to trigger data processing -->
+                        <!--@if (!(mapping.isProcessing))
+                        {
+                            <button class="btn-primary" @onclick="(async () => await ProcessButtonClick(mapping))"> Process</button>
+                        }
+                        else
+                        {
+
+                            <span class="spinner"></span>
+                        }-->
+                        @*<button @onclick="(() => await GenerateInsights(mapping.videoName))">Process</button>*@
+                    @*</td>-->*@
+
+                </tr>
         }
     </tbody >
     </table >

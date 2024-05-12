@@ -173,8 +173,11 @@ namespace processVideoFile
             [JsonPropertyName("SummarizedTitle")]
             public string summarizedTitle { get; set; }
 
-            [JsonPropertyName("Created")]
-            public string created { get; set; }
+            [JsonPropertyName("CreatedDate")]
+            public DateTime CreatedDate { get; set; }
+
+            [JsonPropertyName("ProcessedDate")]
+            public DateTime ProcessedDate { get; set; }
         }
 
 
@@ -184,7 +187,8 @@ namespace processVideoFile
             Mapping newMapping = new Mapping()
             {
                 videoName = filePath,
-                summarizedTitle = ""
+                summarizedTitle = "",
+                CreatedDate = DateTime.Now
             };
             // might be inefficient call 
             titleMappings.filesList.Insert(0, newMapping);

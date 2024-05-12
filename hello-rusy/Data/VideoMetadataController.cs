@@ -50,7 +50,7 @@ namespace hello_rusy.Data
             string textSummaryResult = await GenerateTitleSummary(videoName, transcripts, languageServiceAPIKey, blobConnectionString);
             // TODO: call update videos list with the updated summarized title to update 
             // return ??? maybe a json of all the jsons? or have a separate public class for each that will be called by the uploader
-
+            VideoMetadata videoMetadata = await GenerateGeneralMetadata(videoName, blobConnectionString);
         }
 
         //public async Task<string> RetrieveDataToDisplay(string videoName, string blobConnectionString)
@@ -101,6 +101,18 @@ namespace hello_rusy.Data
             return toDoList;
         }
 
+        public async Task<VideoMetadata> GenerateGeneralMetadata(string videoName, string blobConnectionString)
+        {
+            VideoMetadata videoMetadata = await RetrieveGeneralMetadata(videoName, blobConnectionString);
+            videoMetadata.ProcessedDate = DateTime.Now;
+            string generalMetadataJson = JsonSerializer.Serialize(videoMetadata);
+            await videoMetadataServiceInstance.UploadMetadata(videoName, "generalInfo.json", generalMetadataJson, blobConnectionString);
+
+            await videoMetadataServiceInstance.UpdateTitleMappingsProcessTime(videoName, videoMetadata.ProcessedDate, blobConnectionString);
+
+            return videoMetadata;
+        }
+
         public async Task<VideoMetadata> RetrieveGeneralMetadata(string videoName, string blobConnectionString)
         {
             string jsonMetadata = await videoMetadataServiceInstance.DownloadMetadata(videoName, "generalInfo.json", blobConnectionString);
@@ -110,16 +122,24 @@ namespace hello_rusy.Data
 
         public async Task<string> GenerateTitleSummary(string videoName, List<string> transcripts, string languageServiceAPIKey, string blobConnectionString)
         {
-            TextSummarizerResult textSummaryResult = await languageAIServiceInstance.getTextSummary(languageServiceAPIKey, transcripts);
-            string summarizedTitle = languageAIServiceInstance.GetSummarizedTitle(textSummaryResult);
+            string summarizedTitle;
+            if (transcripts.Count > 0)
+            {
+                TextSummarizerResult textSummaryResult = await languageAIServiceInstance.getTextSummary(languageServiceAPIKey, transcripts);
+                summarizedTitle = languageAIServiceInstance.GetSummarizedTitle(textSummaryResult);
+                
+            } else
+            {
+                 summarizedTitle = "No Title Found";
+            }
             await videoMetadataServiceInstance.UpdateTitleMappings(videoName, summarizedTitle, blobConnectionString);
-
             VideoMetadata generalMetadata = await RetrieveGeneralMetadata(videoName, blobConnectionString);
             generalMetadata.SummarizedTitle = summarizedTitle;
             string generalMetadataJson = JsonSerializer.Serialize(generalMetadata);
             await videoMetadataServiceInstance.UploadMetadata(videoName, "generalInfo.json", generalMetadataJson, blobConnectionString);
 
             return summarizedTitle;
+
         }
 
         public async Task<TitleMappings> RetrieveTitleMappings(string blobConnectionString)

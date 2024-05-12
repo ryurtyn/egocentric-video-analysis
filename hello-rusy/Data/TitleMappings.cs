@@ -20,6 +20,12 @@ namespace hello_rusy.Data
 
         [JsonPropertyName("IsProcessing")]
         public bool isProcessing { get; set; }
+
+        [JsonPropertyName("CreatedDate")]
+        public DateTime CreatedDate { get; set; }
+
+        [JsonPropertyName("ProcessedDate")]
+        public DateTime ProcessedDate { get; set; }
     }
 }
 

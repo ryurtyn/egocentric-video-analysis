@@ -13,7 +13,6 @@
 @inject IJSRuntime JS
 @*<link href="styles.css" rel="stylesheet" />*@
 <h1>@summarizedTitle</h1>
-@*// TODO: MAKE THIS SUMMARIZED TITLE*@
 @*<style>
         #myVideoPlayer {
             width: 30%; /* Adjust the width to your preference */
@@ -33,7 +32,7 @@
                 @foreach (var todo in todos.ToDos)
                 {
                     <li>
-                        <button class="btn-primary" @onclick="() => SeekTo(todo.Timestamp)">&#9199;</button>
+                        <button class="btn-primary" @onclick="() => SeekTo(todo.Timestamp)">&#9205;</button>
                         @todo.Task
                     </li>
                 }
@@ -47,34 +46,48 @@
             </video>
         </div>
     </div>
+    <h2>Key Words</h2>
+
+    @*<div class="chunk">
+        <p>@string.Join(", ", labels)</p>
+    </div>
+    <div class="chunk">
+        <p>@string.Join(", ", topics)</p>
+    </div>*@
+    <div class="chunk">
+        <p>@string.Join(", ", keywords)</p>
+    </div>
 
     <h2>Transcripts</h2>
-    <p>
-        @foreach (var t in transcripts)
-        {
-            @t
-        }
-    </p>
-
-    <h2>Key Frames: </h2>
-    <style>
-        .image-grid {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 10px;
-            padding-bottom: 20px;
-        }
-    </style>
-
-    @foreach (var shot in keyframeUrls)
-    {
-        <div class="image-grid">
-            @foreach (var im in shot)
+    <div class="chunk">
+        <p>
+            @foreach (var t in transcripts)
             {
-                <img src="@im" alt="Image" style="width: 100%; height: auto;">
+                @t <br>
             }
-        </div>
-    }
+        </p>
+    </div>
+
+
+    @*<h2>Key Frames: </h2>
+        <style>
+            .image-grid {
+                display: grid;
+                grid-template-columns: repeat(8, 1fr);
+                gap: 10px;
+                padding-bottom: 20px;
+            }
+        </style>
+
+        @foreach (var shot in keyframeUrls)
+        {
+            <div class="image-grid">
+                @foreach (var im in shot)
+                {
+                    <img src="@im" alt="Image" style="width: 100%; height: auto;">
+                }
+            </div>
+        }*@
 
 
 
@@ -155,11 +168,16 @@ else
         VideoMetadata videoMetadata = await videoMetadataControllerInstance.RetrieveGeneralMetadata(videoId, blobConnectionString);
         videoUrl = videoMetadata.VideoUrl; // TODO: PROBABLY NOT SECURE
         summarizedTitle = videoMetadata.SummarizedTitle;
+        //dateProcessed = videoMetadata.ProcessedDate;
         todos = await videoMetadataControllerInstance.RetrieveOpenAIMetadata(videoId, blobConnectionString);
         VideoIndexerMetadata videoIndexerMetadata = await videoMetadataControllerInstance.RetrieveVideoIndexerMetadata(videoId, blobConnectionString);
         keyframeUrls = videoIndexerMetadata.KeyframeShots;
 
         transcripts = videoIndexerMetadata.Transcripts;
+
+        //labels = videoIndexerMetadata.Labels;
+        //topics = videoIndexerMetadata.Topics;
+        keywords = videoIndexerMetadata.Keywords;
 
 
         //// need to do the auth key retrieval first

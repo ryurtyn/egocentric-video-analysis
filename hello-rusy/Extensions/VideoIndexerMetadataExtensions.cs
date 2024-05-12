@@ -19,11 +19,20 @@ namespace hello_rusy.Extensions
             List<List<string>> keyframeShots = GetVideoKeyframesByShot(videoIndexerResult, accessToken, accountId, location);
             ////keyframeUrls = VideoIndexerServiceInstance.GetVideoKeyframes(videoInformation, accessToken, accountId, location);
 
+            List<string> labels = GetLabels(videoIndexerResult);
+
+            List<string> topics = GetTopics(videoIndexerResult);
+
+            List<string> keywords = GetKeyWords(videoIndexerResult);
+
             return new VideoIndexerMetadata()
             {
                 Timestamps = transcriptTimes,
                 Transcripts = transcriptTexts,
-                KeyframeShots = keyframeShots
+                KeyframeShots = keyframeShots,
+                Labels = labels,
+                Topics = topics,
+                Keywords = keywords
             };
 		}
 
@@ -122,6 +131,71 @@ namespace hello_rusy.Extensions
             return keyFrameUrls;
         }
 
+        public static List<string> GetLabels(VideoIndexerResult videoIndexerResult)
+        {
+            List<string> labels = new List<string>();
+            if (videoIndexerResult.Videos != null)
+            {
+                foreach (var video in videoIndexerResult.Videos)
+                {
+                    if (video.Insights?.Labels != null)
+                    {
+                        foreach (var label in video.Insights.Labels)
+                        {
+                            if (label.Name != null)
+                            {
+                                labels.Add(label.Name);
+                            }
+                        }
+                    }
+                }
+            }
+            return labels;
+        }
+
+        public static List<string> GetTopics(VideoIndexerResult videoIndexerResult)
+        {
+            List<string> topics = new List<string>();
+            if (videoIndexerResult.Videos != null)
+            {
+                foreach (var video in videoIndexerResult.Videos)
+                {
+                    if (video.Insights?.Topics != null)
+                    {
+                        foreach (var topic in video.Insights.Topics)
+                        {
+                            if ((topic.Name != null))
+                            {
+                                topics.Add(topic.Name);
+                            }
+                        }
+                    }
+                }
+            }
+            return topics;
+        }
+
+        public static List<string> GetKeyWords(VideoIndexerResult videoIndexerResult)
+        {
+            List<string> keywords = new List<string>();
+            if (videoIndexerResult.Videos != null)
+            {
+                foreach (var video in videoIndexerResult.Videos)
+                {
+                    if (video.Insights?.Keywords != null)
+                    {
+                        foreach (var keyword in video.Insights.Keywords)
+                        {
+                            if (keyword.Text != null)
+                            {
+                                keywords.Add(keyword.Text);
+                            }
+                        }
+                    }
+                }
+            }
+            return keywords;
+        }
         // TODO: put all the rest of the data conversion stuff from video indexer service in here instead 
     }
 }

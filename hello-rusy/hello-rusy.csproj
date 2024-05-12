@@ -23,6 +23,6 @@
     <Content Remove="wwwroot\styles.css" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="wwwroot\styles.css" />
+    <None Include="wwwroot\my-styles.css" />
   </ItemGroup>
 </Project>

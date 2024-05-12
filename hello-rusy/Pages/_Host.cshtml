@@ -12,7 +12,9 @@
     <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
     <link href="css/site.css" rel="stylesheet" />
     <link href="hello-rusy.styles.css" rel="stylesheet" />
-    <link rel="icon" type="image/png" href="favicon.png"/>
+    <link href="my-styles.css" rel="stylesheet" />
+    @*<link href="hello-rusy.tooplate-style.css" rel="stylesheet" />*@
+    <link rel="icon" type="image/png" href="favicon.png" />
     <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
 </head>
 <body>
@@ -36,8 +38,9 @@
             if (video) {
                 console.log("Old time: " + video.currentTime);
                 console.log("Time: " + time);
-                video.pause();
+                //video.pause();
                 video.currentTime = time;
+                video.play();
                 console.log("New Time: " + video.currentTime);
             } else {
                 console.error('Video element not found');
