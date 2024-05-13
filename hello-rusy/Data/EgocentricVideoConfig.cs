@@ -1,7 +1,10 @@
 ﻿using System;
 namespace hello_rusy.Data
 {
-	public class EgocentricVideoConfig
+    /// <summary>
+    /// Configuration settings needed to process the video, including API keys and endpoint URLs
+    /// </summary>
+    public class EgocentricVideoConfig
 	{
 		public EgocentricVideoConfig(
 			string videoIndexerApiKey,
