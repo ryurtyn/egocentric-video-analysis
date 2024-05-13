@@ -61,7 +61,6 @@ else
                         @*Button to trigger data processing*@
                         @if (!(mapping.isProcessing))
                         {
-                            @*<span class="spinner"></span>*@
                             <button class="btn-primary" @onclick="(async () => await ProcessButtonClick(mapping, config))"> Process</button>
                         }
                         else
@@ -69,7 +68,6 @@ else
 
                             <span class="spinner"></span>
                         }
-                        @*<button @onclick="(() => await GenerateInsights(mapping.videoName))">Process</button>*@
                     </td>
 
                 </tr>
@@ -85,10 +83,6 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        //string accessToken = Configuration["VideoIndexer:AccessToken"];
-        //string accountId = Configuration["VideoIndexer:AccountId"];
-        //string location = Configuration["VideoIndexer:Location"];
-        //string subscriptionKey = Configuration["VideoIndexer:SubscriptionKey"];
 
         config = new EgocentricVideoConfig(
             videoIndexerApiKey: Configuration["VideoIndexer:AccessToken"],
@@ -103,17 +97,11 @@ else
 
         titleMappings = await LoadTitleMappings(config);
 
-        //string blobConnectionString = Configuration?["ConnectionStrings:AzureBlobStorage"] ?? "";
-        ////videoIndexerList = await videoIndexerServiceInstance.GetAllVideos(accessToken, accountId, location, subscriptionKey);
-        //VideoMetadataController videoMetadataControllerInstance = new VideoMetadataController(videoIndexerServiceInstance, openAIServiceInstance, videoMetadataServiceInstance, languageAIServiceInstance);
-        //titleMappings = await videoMetadataControllerInstance.RetrieveTitleMappings(blobConnectionString);
-
     }
 
     private async Task<TitleMappings> LoadTitleMappings(EgocentricVideoConfig config)
     {
         string blobConnectionString = config.dataFileConnectionString;
-        //videoIndexerList = await videoIndexerServiceInstance.GetAllVideos(accessToken, accountId, location, subscriptionKey);
         VideoMetadataController videoMetadataControllerInstance = new VideoMetadataController(videoIndexerServiceInstance, openAIServiceInstance, videoMetadataServiceInstance, languageAIServiceInstance);
         titleMappings = await videoMetadataControllerInstance.RetrieveTitleMappings(config);
         return titleMappings;
@@ -135,22 +123,11 @@ else
 
     private async Task GenerateInsights(string filename, EgocentricVideoConfig config)
     {
-        //TODO: create your own configuration object to make it easier to pass in configurations
-        //string accessToken = Configuration?["VideoIndexer:AccessToken"] ?? "";
-        //string accountId = Configuration?["VideoIndexer:AccountId"] ?? "";
-        //string location = Configuration?["VideoIndexer:Location"] ?? "";
-        //string subscriptionKey = Configuration?["VideoIndexer:SubscriptionKey"] ?? "";
-        //string blobConnectionString = Configuration?["ConnectionStrings:AzureBlobStorage"] ?? "";
-        //string openAIKey = Configuration?["OpenAI:APIKey"] ?? "";
-        //string languageServiceAPIKey = Configuration?["LanguageAI:SubscriptionKey"] ?? "";
-
 
         // Initialize video media controller with relevant services passed in
         VideoMetadataController videoMetadataControllerInstance = new VideoMetadataController(videoIndexerServiceInstance, openAIServiceInstance, videoMetadataServiceInstance, languageAIServiceInstance);
         await videoMetadataControllerInstance.GenerateAllMetadata(filename, config);
 
-        //string blobConnectionString = Configuration["ConnectionStrings:AzureBlobStorage"];
-        //await VideoMetadataServiceInstance.GenerateInsights(filename, blobConnectionString);
 
     }
 

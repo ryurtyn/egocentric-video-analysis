@@ -32,7 +32,8 @@
     </div>
 
     <script src="_framework/blazor.server.js"></script>
-    <script>function setVideoCurrentTime(videoId, time) {
+    <script>
+        function setVideoCurrentTime(videoId, time) {
             console.log("Video ID: " + videoId + ", Time: " + time);
             const video = document.getElementById(videoId);
             if (video) {
@@ -46,6 +47,50 @@
                 console.error('Video element not found');
             }
         }
+
+        function setupVideoTimestampFeedback() {
+            var video = document.getElementById('myVideoPlayer');
+
+            video.addEventListener('loadedmetadata', () => {
+                console.log("Video metadata loaded.");
+                video._updateInterval = setInterval(() => {
+                    console.log('currentTime of the player is:', video.currentTime);
+                }, 1000);
+            });
+
+            video.addEventListener('play', () => {
+                if (!video._updateInterval) {
+                    video._updateInterval = setInterval(() => {
+                        console.log('currentTime of the player is:', video.currentTime);
+                    }, 1000);
+                }
+            }, true);
+
+            video.addEventListener('pause', () => {
+                if (video._updateInterval) {
+                    clearInterval(video._updateInterval);
+                    video._updateInterval = null;
+                }
+            }, true);
+        }
+
+        function timestampTaskFeedback() {
+            console.log("Function called");
+            var video = document.getElementById('myVideoPlayer');	
+
+            var highlightCurrentTask = function highlightCurrentTask() {
+                console.log('currentTime of the player is:', video.currentTime);
+            }
+
+            video.addEventListener('play', () => {
+              video._updateInterval = setInterval(() => {
+                highlightCurrentTask()
+              }, 1000);
+            }, true);
+
+            video.addEventListener('pause', () => clearInterval(video._updateInterval), true);
+        }
+
     </script>
 </body>
 </html>

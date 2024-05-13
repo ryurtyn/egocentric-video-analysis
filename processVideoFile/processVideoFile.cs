@@ -79,7 +79,6 @@ namespace processVideoFile
             // TODO: need to swap out the bearer thing to put in the api key from appsettings
             // https://learn.microsoft.com/en-us/rest/api/videoindexer/generate/access-token?view=rest-videoindexer-2024-01-01&tabs=HTTP#code-try-0
             // TODO: will need to update this every few hours
-            // TODO: put accesstoken in environment variable in the function
             client.DefaultRequestHeaders.Clear();
             client.DefaultRequestHeaders.Add("Authorization", config.bearerAuthKey); // this is ARM token 
             log.LogInformation($"get access token API URL: {url}");
@@ -132,18 +131,7 @@ namespace processVideoFile
             var containerClient = blobServiceClient.GetBlobContainerClient(containerName); // rusycontainertest --> processsedvideoinfo --> filename  | processed-video-information/filename
 
             // Split the full path by the '/' character
-            //string[] parts = filePath.Split('/');
             string filename = filePath;
-            //// The part after the '/' will be the last element of the array
-            //string filename = "";
-            //if (parts.Length > 1)
-            //{
-            //    filename = parts[1]; // returns the second part, after the '/'
-            //}
-            //else
-            //{
-            //    Console.WriteLine("FILENAME ERROR: " + filePath); // returns the original path if no '/' found
-            //}
             // Define the directory path and the full blob name
             string directoryPath = $"{filename}"; // processed-video-information/filename
             string blobName = $"{directoryPath}/generalInfo.json";

@@ -173,10 +173,5 @@ namespace hello_rusy.Data
                 return json;
             }
         }
-
-
-        
-
     }
 }
-

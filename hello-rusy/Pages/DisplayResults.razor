@@ -12,6 +12,7 @@
 
 @inject IJSRuntime JS
 @*<link href="styles.css" rel="stylesheet" />*@
+
 <h1>@summarizedTitle</h1>
 @*<style>
         #myVideoPlayer {
@@ -44,16 +45,41 @@
                 <source src="@videoUrl" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
+
+            @code {
+                private ElementReference videoElement; // Reference to the video element
+                public string videoUrl; // URL of the video to play
+
+                // Call JavaScript to attach event listeners once the video element is available
+                protected override async Task OnAfterRenderAsync(bool firstRender)
+                {
+                    if (firstRender)
+                    {
+                        // Ensure the video URL is set before invoking JavaScript
+                        if (!string.IsNullOrEmpty(videoUrl))
+                        {
+                            await JS.InvokeVoidAsync("eval", "alert('is not null or empty from Blazor');");
+                            await JS.InvokeVoidAsync("setupVideoTimestampFeedback");
+                        } else
+                        {
+                            await JS.InvokeVoidAsync("eval", "alert('is null or empty from Blazor');");
+                            await JS.InvokeVoidAsync("setupVideoTimestampFeedback");
+                        }
+                    }
+                }
+
+                // Example function to set video source dynamically and ensure JS is called
+                private async Task UpdateVideoSource(string newVideoUrl)
+                {
+                    videoUrl = newVideoUrl;
+                    // You might need to invoke the JS function here too if the video source can change after the initial render
+                    await JS.InvokeVoidAsync("timestampTaskFeedback");
+                }
+            }
+
         </div>
     </div>
     <h2>Key Words</h2>
-
-    @*<div class="chunk">
-        <p>@string.Join(", ", labels)</p>
-    </div>
-    <div class="chunk">
-        <p>@string.Join(", ", topics)</p>
-    </div>*@
     <div class="chunk">
         <p>@string.Join(", ", keywords)</p>
     </div>
@@ -67,29 +93,6 @@
             }
         </p>
     </div>
-
-
-    @*<h2>Key Frames: </h2>
-        <style>
-            .image-grid {
-                display: grid;
-                grid-template-columns: repeat(8, 1fr);
-                gap: 10px;
-                padding-bottom: 20px;
-            }
-        </style>
-
-        @foreach (var shot in keyframeUrls)
-        {
-            <div class="image-grid">
-                @foreach (var im in shot)
-                {
-                    <img src="@im" alt="Image" style="width: 100%; height: auto;">
-                }
-            </div>
-        }*@
-
-
 
 }
 else
@@ -114,23 +117,9 @@ else
     private List<string> transcriptTimes;
     private List<List<string>> keyframeUrls;
 
-    private List<string> topics;
-    private string topicsString;
-
-    private List<string> labels;
-    private string labelsString;
-
-    private List<string> sentiments;
-    private string sentimentsString;
 
     private List<string> keywords;
     private string keywordsString;
-
-    private List<string> ocrs;
-    private string ocrsString;
-
-    private List<string> detectedObjects;
-    private string detectedObjectsString;
 
     private bool responseReceived = false;
 
@@ -141,14 +130,10 @@ else
     private string openAIResult;
     private ToDoList todos;
 
-    private ElementReference videoElement;
-    public string videoUrl;
+    //private ElementReference videoElement;
+    //public string videoUrl;
 
     private EgocentricVideoConfig config;
-
-    //[Parameter]
-    //public double StartTime { get; set; } = 0; // default to start at the beginning
-
 
     protected override async Task OnInitializedAsync()
     {
@@ -159,23 +144,13 @@ else
         {
             videoId = videoIds.First(); // Assuming you're passing a single ID
             await Submit(); // Automatically fetch and display the results
+
         }
 
-        //config = new EgocentricVideoConfig(
-        //    videoIndexerApiKey: Configuration["VideoIndexer:AccessToken"],
-        //    videoIndexerAccountId: Configuration["VideoIndexer:AccountId"],
-        //    videoIndexerLocation: Configuration["VideoIndexer:Location"],
-        //    videoIndexerSubscriptionKey: Configuration["VideoIndexer:SubscriptionKey"],
-        //    dataFileConnectionString: Configuration?["AzureBlobStorageDataFiles:ConnectionString"] ?? "",
-        //    dataFileContainerName: Configuration?["AzureBlobStorageDataFiles:ContainerName"] ?? "",
-        //    openAIApiKey: Configuration?["OpenAI:APIKey"] ?? "",
-        //    languageServiceApiKey: Configuration?["LanguageAI:SubscriptionKey"] ?? ""
-        //);
     }
 
     private async Task Submit()
     {
-        //string blobConnectionString = Configuration?["ConnectionStrings:AzureBlobStorage"] ?? "";
         config = new EgocentricVideoConfig(
             videoIndexerApiKey: Configuration["VideoIndexer:AccessToken"],
             videoIndexerAccountId: Configuration["VideoIndexer:AccountId"],
@@ -197,66 +172,21 @@ else
 
         transcripts = videoIndexerMetadata.Transcripts;
 
-        //labels = videoIndexerMetadata.Labels;
-        //topics = videoIndexerMetadata.Topics;
         keywords = videoIndexerMetadata.Keywords;
 
-
-        //// need to do the auth key retrieval first
-
-        //string accessToken = Configuration["VideoIndexer:AccessToken"];
-        //string accountId = Configuration["VideoIndexer:AccountId"];
-        //string location = Configuration["VideoIndexer:Location"];
-        //string subscriptionKey = Configuration["VideoIndexer:SubscriptionKey"];
-
-        //videoInformation = await VideoIndexerServiceInstance.GetVideoInsights(videoId, accessToken, accountId, location, subscriptionKey);
-        //fileName = videoInformation.Name;
-        //state = videoInformation.State;
-
-        //transcripts = VideoIndexerServiceInstance.ExtractTranscriptTexts(videoInformation);
-        //transcriptTimes = VideoIndexerServiceInstance.ExtractTranscriptTimestamps(videoInformation);
-
-        //keyframeUrls = VideoIndexerServiceInstance.GetVideoKeyframesByShot(videoInformation, accessToken, accountId, location);
-        ////keyframeUrls = VideoIndexerServiceInstance.GetVideoKeyframes(videoInformation, accessToken, accountId, location);
-
-        //topics = VideoIndexerServiceInstance.GetTopics(videoInformation);
-        //topicsString = String.Join(", ", topics);
-
-        //labels = VideoIndexerServiceInstance.GetLabels(videoInformation);
-        //labelsString = String.Join(", ", labels);
-
-        //sentiments = VideoIndexerServiceInstance.GetSentiments(videoInformation);
-        //sentimentsString = String.Join(", ", sentiments);
-
-        //keywords = VideoIndexerServiceInstance.GetKeyWords(videoInformation);
-        //keywordsString = String.Join(", ", keywords);
-
-        //ocrs = VideoIndexerServiceInstance.GetOcr(videoInformation);
-        //ocrsString = String.Join(", ", ocrs);
-
-        //detectedObjects = VideoIndexerServiceInstance.GetDetectedObjects(videoInformation);
-        //detectedObjectsString = String.Join(", ", detectedObjects);
-
-        //string languageServiceSubscriptionKey = Configuration["LanguageAI:SubscriptionKey"];
-        //textSummaryResult = await LanguageAIServiceInstance.getTextSummary(languageServiceSubscriptionKey, transcripts);
-        //summarizedTitle = LanguageAIServiceInstance.GetSummarizedTitle(textSummaryResult);
-
-        //string openAIApiKey = Configuration["OpenAI:APIKey"];
-        //todos = await OpenAIServiceInstance.RequestChatResponse(transcripts, transcriptTimes, openAIApiKey);
-        ////todos = await OpenAIServiceInstance.RequestChatResponse("What is 2 + 2? ", openAIApiKey);
-
-        //string blobConnectionString = Configuration["ConnectionStrings:AzureBlobStorage"];
-        //VideoUrl = await VideoMetadataServiceInstance.GetVideoUrl(fileName, blobConnectionString);
-
         responseReceived = true;
+
+        // TODO: run custom javascript 
+        //await timestampFeedback();
 
     }
 
 
-    //private async Task OnMetadataLoaded()
-    //{
-    //    await JS.InvokeVoidAsync("eval", $"document.getElementById('myVideoPlayer').currentTime = {StartTime};");
-    //}
+    private async Task OnMetadataLoaded()
+    {
+        await JS.InvokeVoidAsync("timestampTaskFeedback");
+        //await JS.InvokeVoidAsync("eval", $"document.getElementById('myVideoPlayer').currentTime = {StartTime};");
+    }
 
     private async Task SeekTo(string timestamp)
     {
@@ -265,6 +195,13 @@ else
         Console.WriteLine("TIMESTAMP: " + timestampDouble);
         await JS.InvokeVoidAsync("setVideoCurrentTime", "myVideoPlayer", timestampDouble.ToString());
         //await JS.InvokeVoidAsync("eval", $"document.getElementById('myVideoPlayer').currentTime = {timestampDouble.ToString()};");
+    }
+
+    private async Task timestampFeedback()
+    {
+        //await JSRuntime.InvokeVoidAsync("timestampTaskFeedback");
+        await JS.InvokeVoidAsync("timestampTaskFeedback");
+
     }
 
     public static int ConvertTimeToSeconds(string time)
