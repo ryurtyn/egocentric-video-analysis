@@ -11,20 +11,12 @@
 
 
 @inject IJSRuntime JS
-@*<link href="styles.css" rel="stylesheet" />*@
 
 <h1>@summarizedTitle</h1>
-@*<style>
-        #myVideoPlayer {
-            width: 30%; /* Adjust the width to your preference */
-            margin: auto; /* This centers the video player horizontally */
-            display: block; /* Ensures the margin auto has the desired effect */
-        }
-    </style>*@
+
 
 @if (responseReceived)
 {
-    @*<p>Chat Result: @openAIResult</p>*@
     <h2>Tasks</h2>
     <div style="display: flex; flex-wrap: wrap; gap: 20px;">
         <div style="flex: 3; min-width: 300px;">
@@ -55,26 +47,17 @@
                 {
                     if (firstRender)
                     {
-                        // Ensure the video URL is set before invoking JavaScript
-                        if (!string.IsNullOrEmpty(videoUrl))
-                        {
-                            await JS.InvokeVoidAsync("eval", "alert('is not null or empty from Blazor');");
-                            await JS.InvokeVoidAsync("setupVideoTimestampFeedback");
-                        } else
-                        {
-                            await JS.InvokeVoidAsync("eval", "alert('is null or empty from Blazor');");
-                            await JS.InvokeVoidAsync("setupVideoTimestampFeedback");
-                        }
+                        await JS.InvokeVoidAsync("setupVideoTimestampFeedback");
                     }
                 }
 
                 // Example function to set video source dynamically and ensure JS is called
-                private async Task UpdateVideoSource(string newVideoUrl)
-                {
-                    videoUrl = newVideoUrl;
-                    // You might need to invoke the JS function here too if the video source can change after the initial render
-                    await JS.InvokeVoidAsync("timestampTaskFeedback");
-                }
+                //private async Task UpdateVideoSource(string newVideoUrl)
+                //{
+                //    videoUrl = newVideoUrl;
+                //    // You might need to invoke the JS function here too if the video source can change after the initial render
+                //    await JS.InvokeVoidAsync("timestampTaskFeedback");
+                //}
             }
 
         </div>
@@ -117,7 +100,6 @@ else
     private List<string> transcriptTimes;
     private List<List<string>> keyframeUrls;
 
-
     private List<string> keywords;
     private string keywordsString;
 
@@ -130,9 +112,6 @@ else
     private string openAIResult;
     private ToDoList todos;
 
-    //private ElementReference videoElement;
-    //public string videoUrl;
-
     private EgocentricVideoConfig config;
 
     protected override async Task OnInitializedAsync()
@@ -142,8 +121,8 @@ else
         // Check if there's a query string parameter for the video ID
         if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("videoId", out var videoIds))
         {
-            videoId = videoIds.First(); // Assuming you're passing a single ID
-            await Submit(); // Automatically fetch and display the results
+            videoId = videoIds.First();
+            await Submit();
 
         }
 
@@ -165,20 +144,12 @@ else
         VideoMetadata videoMetadata = await videoMetadataControllerInstance.RetrieveGeneralMetadata(videoId, config);
         videoUrl = videoMetadata.VideoUrl; // TODO: PROBABLY NOT SECURE
         summarizedTitle = videoMetadata.SummarizedTitle;
-        //dateProcessed = videoMetadata.ProcessedDate;
         todos = await videoMetadataControllerInstance.RetrieveOpenAIMetadata(videoId, config);
         VideoIndexerMetadata videoIndexerMetadata = await videoMetadataControllerInstance.RetrieveVideoIndexerMetadata(videoId, config);
         keyframeUrls = videoIndexerMetadata.KeyframeShots;
-
         transcripts = videoIndexerMetadata.Transcripts;
-
         keywords = videoIndexerMetadata.Keywords;
-
         responseReceived = true;
-
-        // TODO: run custom javascript 
-        //await timestampFeedback();
-
     }
 
 

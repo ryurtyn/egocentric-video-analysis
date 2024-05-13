@@ -4,6 +4,9 @@ using System.Text.Json.Serialization;
 
 namespace hello_rusy.Data
 {
+    /// <summary>
+    /// List of video indexer results 
+    /// </summary>
     public class VideoIndexerList
     {
         [JsonPropertyName("results")]
@@ -13,6 +16,9 @@ namespace hello_rusy.Data
         public NextPage? NextPage { get; set; }
     }
 
+    /// <summary>
+    /// video indexer result. Detailed description found on video indexer API 
+    /// </summary>
     public class VideoIndexerResult
     {
         [JsonPropertyName("name")]

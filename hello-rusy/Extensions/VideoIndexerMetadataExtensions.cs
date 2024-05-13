@@ -5,37 +5,35 @@ using hello_rusy.Data;
 
 namespace hello_rusy.Extensions
 {
+    /// <summary>
+    /// Class to interact with video indexer result class. Extracts needed information and converts to video indexer metadata format 
+    /// </summary>
 	public static class VideoIndexerMetadataExtensions
     {
+        /// <summary>
+        /// Converter from Video Indexer Result class to Video Indexer Metadata class 
+        /// </summary>
+        /// <param name="videoIndexerResult"> Video Indexer Result object </param>
+        /// <param name="config"> configuration object </param>
+        /// <returns> Video Indexer Metadata object </returns>
         public static VideoIndexerMetadata ConvertToVideoIndexerMetadata(this VideoIndexerResult videoIndexerResult, EgocentricVideoConfig config)
 		{
-            // Get transcript text
             List<string> transcriptTexts = GetTranscriptText(videoIndexerResult);
-
-            // Get transcript times
             List<string> transcriptTimes = GetTranscriptTimes(videoIndexerResult);
-
-
-            List<List<string>> keyframeShots = GetVideoKeyframesByShot(videoIndexerResult, config);
-            ////keyframeUrls = VideoIndexerServiceInstance.GetVideoKeyframes(videoInformation, accessToken, accountId, location);
-
-            List<string> labels = GetLabels(videoIndexerResult);
-
-            List<string> topics = GetTopics(videoIndexerResult);
-
             List<string> keywords = GetKeyWords(videoIndexerResult);
-
             return new VideoIndexerMetadata()
             {
                 Timestamps = transcriptTimes,
                 Transcripts = transcriptTexts,
-                KeyframeShots = keyframeShots,
-                Labels = labels,
-                Topics = topics,
                 Keywords = keywords
             };
 		}
 
+        /// <summary>
+        /// Retrives list of transcripts from video indexer result object 
+        /// </summary>
+        /// <param name="videoIndexerResult"> video indexer result object </param>
+        /// <returns> list of transcript strings </returns>
         private static List<string> GetTranscriptText(VideoIndexerResult videoIndexerResult)
         {
             List<string> transcriptTexts = new List<string>();
@@ -59,6 +57,11 @@ namespace hello_rusy.Extensions
             return transcriptTexts;
         }
 
+        /// <summary>
+        /// Retrives list of timestamps corresponding to each transcript object from video indexer result object 
+        /// </summary>
+        /// <param name="videoIndexerResult"> video indexer result object </param>
+        /// <returns> list of timestamps corresponding to each transcript item </returns>
         private static List<string> GetTranscriptTimes(VideoIndexerResult videoIndexerResult)
         {
             List<string> transcriptTimes = new List<string>();
@@ -84,13 +87,26 @@ namespace hello_rusy.Extensions
             return transcriptTimes;
         }
 
-        // For getting key frames 
+        /// <summary>
+        /// Constructs url for key frame image 
+        /// Not secure and should not be used in final product 
+        /// </summary>
+        /// <param name="thumbnailId"></param>
+        /// <param name="videoId"></param>
+        /// <param name="config"></param>
+        /// <returns></returns>
         private static string GetKeyFrameUrl(string thumbnailId, string videoId, EgocentricVideoConfig config )
         {
             string url = $"https://api.videoindexer.ai/{config.videoIndexerLocation}/Accounts/{config.videoIndexerAccountId}/Videos/{videoId}/Thumbnails/{thumbnailId}?accessToken={config.videoIndexerApiKey}";
             return url;
         }
 
+        /// <summary>
+        /// extracts key frame url from video indexer result object 
+        /// </summary>
+        /// <param name="videoIndexerResult"> video indexer result object </param>
+        /// <param name="config"> configuration object </param>
+        /// <returns> list of video key frame urls split by shot </returns>
         private static List<List<string>> GetVideoKeyframesByShot(VideoIndexerResult videoIndexerResult, EgocentricVideoConfig config)
         {
             string thumbnailId;
@@ -131,6 +147,11 @@ namespace hello_rusy.Extensions
             return keyFrameUrls;
         }
 
+        /// <summary>
+        /// Gets labels from video indexer result object 
+        /// </summary>
+        /// <param name="videoIndexerResult"> video indexer result object </param>
+        /// <returns> list of labels </returns>
         public static List<string> GetLabels(VideoIndexerResult videoIndexerResult)
         {
             List<string> labels = new List<string>();
@@ -153,6 +174,11 @@ namespace hello_rusy.Extensions
             return labels;
         }
 
+        /// <summary>
+        /// Gets topics from video indexer result object 
+        /// </summary>
+        /// <param name="videoIndexerResult"> video indexer result object </param>
+        /// <returns> list of topics </returns>
         public static List<string> GetTopics(VideoIndexerResult videoIndexerResult)
         {
             List<string> topics = new List<string>();
@@ -175,6 +201,11 @@ namespace hello_rusy.Extensions
             return topics;
         }
 
+        /// <summary>
+        /// Gets key words from video indexer result object 
+        /// </summary>
+        /// <param name="videoIndexerResult"> video indexer result object </param>
+        /// <returns> list of key words </returns>
         public static List<string> GetKeyWords(VideoIndexerResult videoIndexerResult)
         {
             List<string> keywords = new List<string>();
@@ -196,7 +227,60 @@ namespace hello_rusy.Extensions
             }
             return keywords;
         }
-        // TODO: put all the rest of the data conversion stuff from video indexer service in here instead 
+
+        /// <summary>
+        ///  Gets OCR information from video indexer result object 
+        /// </summary>
+        /// <param name="videoIndexerResult"> video indexer result object </param>
+        /// <returns> list of OCR strings </returns>
+        public static List<string> GetOcr(VideoIndexerResult videoIndexerResult)
+        {
+            List<string> ocrs = new List<string>();
+            if (videoIndexerResult.Videos != null)
+            {
+                foreach (var video in videoIndexerResult.Videos)
+                {
+                    if (video.Insights?.Ocr != null)
+                    {
+                        foreach (var ocr in video.Insights.Ocr)
+                        {
+                            if (ocr.Text != null)
+                            {
+                                ocrs.Add(ocr.Text);
+                            }
+                        }
+                    }
+                }
+            }
+            return ocrs;
+        }
+
+        /// <summary>
+        /// Gets detected objects from video indexer result object 
+        /// </summary>
+        /// <param name="videoIndexerResult"> video indexer result object </param>
+        /// <returns> list of detected objects </returns>
+        public static List<string> GetDetectedObjects(VideoIndexerResult videoIndexerResult)
+        {
+            List<string> detectedObjects = new List<string>();
+            if (videoIndexerResult.Videos != null)
+            {
+                foreach (var video in videoIndexerResult.Videos)
+                {
+                    if (video.Insights?.DetectedObjects != null)
+                    {
+                        foreach (var detectedObject in video.Insights.DetectedObjects)
+                        {
+                            if (detectedObject.DisplayName != null)
+                            {
+                                detectedObjects.Add(detectedObject.DisplayName);
+                            }
+                        }
+                    }
+                }
+            }
+            return detectedObjects;
+        }
     }
 }
 

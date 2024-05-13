@@ -9,7 +9,6 @@
 
 <PageTitle>Procedural Task Videos</PageTitle>
 
-@*<link href="styles.css" rel="stylesheet" />*@
 <h1>Procedural Task Videos</h1>
 
 @if (titleMappings == null)
@@ -43,18 +42,10 @@ else
                         }
                     </td>
                     <td>
-                        @if (mapping.CreatedDate != null)
-                        {
-
-                            @mapping.CreatedDate
-                        }
+                        @mapping.CreatedDate
                     </td>
                     <td>
-                        @if (mapping.ProcessedDate != null)
-                        {
-
-                            @mapping.ProcessedDate
-                        }
+                        @mapping.ProcessedDate
                     </td>
 
                     <td>
@@ -127,11 +118,6 @@ else
         // Initialize video media controller with relevant services passed in
         VideoMetadataController videoMetadataControllerInstance = new VideoMetadataController(videoIndexerServiceInstance, openAIServiceInstance, videoMetadataServiceInstance, languageAIServiceInstance);
         await videoMetadataControllerInstance.GenerateAllMetadata(filename, config);
-
-
     }
-
-
-
 }
 
