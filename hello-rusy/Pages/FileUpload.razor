@@ -50,9 +50,11 @@
         fileSubmitted = true;
 
         // Retrieve configuration settings
-        string blobUriString = Configuration["AzureBlobStorage:BlobUri"];
-        string sasToken = Configuration["AzureBlobStorage:SasToken"];
-        string blobConnectionString = Configuration["ConnectionStrings:AzureBlobStorage"];
+        //string blobUriString = Configuration["AzureBlobStorage:BlobUri"]; // old not needed 
+        //string sasToken = Configuration["AzureBlobStorage:SasToken"]; // old not needed
+        //string blobConnectionString = Configuration["ConnectionStrings:AzureBlobStorage"]; // connection string redesign 
+        string blobConnectionString = Configuration["AzureBlobStorageInputVideoFiles:ConnectionString"];
+        string containerName = Configuration["AzureBlobStorageInputVideoFiles:ContainerName"];
 
         // Generate the current timestamp
         string timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
@@ -77,9 +79,8 @@
         var blobServiceClient = new BlobServiceClient(blobConnectionString);
 
         // Create or reference an existing container
-        var containerClient = blobServiceClient.GetBlobContainerClient("rusycontainertest");
-        string blobName = $"input-video-files/{uploadFileName}";
-        //string blobName = $"{directoryPath}/generalInfo.json";
+        var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+        string blobName = $"{uploadFileName}";
         Console.WriteLine("Blob Name: " + blobName);
 
         //Uri blobUri = new Uri($"{blobUriString}/{uploadFileName}?{sasToken}");

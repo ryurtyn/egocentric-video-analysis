@@ -20,7 +20,7 @@ namespace processVideoFile
 
         // Function is triggered when a file is uploaded to the blob storage container 
         [FunctionName("processVideoFile")]
-        public async Task Run([BlobTrigger("rusycontainertest/{name}.mp4", Connection = "ConnectionStrings:AzureBlobStorage")] Stream myBlob, string name, ILogger log, Uri uri)
+        public async Task Run([BlobTrigger("%AzureBLobStorageInputVideoFilesContainerName%/{name}.mp4", Connection = "AzureBlobStorageInputVideoFilesConnectionString")] Stream myBlob, string name, ILogger log, Uri uri)
         {
             // try to read the uploaded file and log something (some metadata or something)
             // want to log the name, and maybe the length/size of the video
@@ -28,21 +28,36 @@ namespace processVideoFile
             log.LogInformation($"C# Blob trigger function got blob\n Name:{name} \n Size: {myBlob.Length} Bytes");
 
             // upload file to video indexer & start indexing
-            string apiKey = Environment.GetEnvironmentVariable("VideoIndexerApiKey");
-            string accountId = Environment.GetEnvironmentVariable("VideoIndexerAccountId");
-            string location = Environment.GetEnvironmentVariable("VideoIndexerLocation"); // For example, "trial" or "westus2"
+
+            ProcessVideoFileConfig config = new ProcessVideoFileConfig(
+                Environment.GetEnvironmentVariable("VideoIndexerApiKey"),
+                Environment.GetEnvironmentVariable("VideoIndexerAccountId"),
+                Environment.GetEnvironmentVariable("VideoIndexerAccountName"),
+                Environment.GetEnvironmentVariable("BearerAuthKey"),
+                Environment.GetEnvironmentVariable("VideoIndexerLocation"),
+                Environment.GetEnvironmentVariable("VideoIndexerResourceGroup"),
+                Environment.GetEnvironmentVariable("VideoIndexerSubscriptionId"),
+                Environment.GetEnvironmentVariable("VideoIndexerSubscriptionKey"),
+                Environment.GetEnvironmentVariable("AzureBlobStorageInputVideoFilesConnectionString"),
+                Environment.GetEnvironmentVariable("AzureBlobStorageInputVideoFilesContainerName"),
+                Environment.GetEnvironmentVariable("AzureBlobStorageDataFilesConnectionString"),
+                Environment.GetEnvironmentVariable("AzureBlobStorageDataFilesContainerName")
+
+                );
             //string bearerAuthKey = Environment.GetEnvironmentVariable("BearerAuthKey");
             try
             {
                 // Generate an ARM access token 
-                var accessToken = await GetAccessToken(apiKey, accountId, location, log);
+                var accessToken = await GetAccessToken(config, log);
                 log.LogInformation("access token generated");
-                // Upload video to Video Indexer
-                await UploadVideoAndIndex(name, accessToken, accountId, location, log, uri);
+                log.LogInformation($"f 1");
+                await UploadVideoAndIndex(config, name, accessToken, log, uri);
                 // Create metadata skeleton and upload to blob storage
-                await SendToBlobStorage(name, uri, log);
+                log.LogInformation($"f 2");
+                await SendToBlobStorage(config, name, uri, log);
                 // Update the videos list to contain the new video
-                await UpdateVideosList(name, log);
+                log.LogInformation($"f 3");
+                await UpdateVideosList(config, name, log);
             }
             catch (Exception ex)
             {
@@ -55,17 +70,19 @@ namespace processVideoFile
             public string accessToken { get; set; }
         }
 
-        private static async Task<string> GetAccessToken(string apiKey, string accountId, string location, ILogger log)
+        private static async Task<string> GetAccessToken(ProcessVideoFileConfig config, ILogger log)
         {
-            string url = "https://management.azure.com/subscriptions/2a2133fc-9811-4822-bf15-8c3c74f5973c/resourceGroups/hello-rusy-resource-group/providers/Microsoft.VideoIndexer/accounts/videoIndexerTester/generateAccessToken?api-version=2024-01-01";
+            
+            string url = $"https://management.azure.com/subscriptions/{config.subscriptionId}/resourceGroups/{config.resourceGroupName}/providers/Microsoft.VideoIndexer/accounts/{config.accountName}/generateAccessToken?api-version=2024-01-01";
+            string old_url = "https://management.azure.com/subscriptions/2a2133fc-9811-4822-bf15-8c3c74f5973c/resourceGroups/hello-rusy-resource-group/providers/Microsoft.VideoIndexer/accounts/videoIndexerTester/generateAccessToken?api-version=2024-01-01";
             // TODO: need to swap out the bearer thing to put in the api key from appsettings
             // https://learn.microsoft.com/en-us/rest/api/videoindexer/generate/access-token?view=rest-videoindexer-2024-01-01&tabs=HTTP#code-try-0
             // TODO: will need to update this every few hours
             // TODO: put accesstoken in environment variable in the function
             client.DefaultRequestHeaders.Clear();
-            string authorizationkey = Environment.GetEnvironmentVariable("BearerAuthKey");
-            client.DefaultRequestHeaders.Add("Authorization", authorizationkey); // this is ARM token 
-
+            client.DefaultRequestHeaders.Add("Authorization", config.bearerAuthKey); // this is ARM token 
+            log.LogInformation($"get access token API URL: {url}");
+            log.LogInformation($"get access token old URL: {old_url}");
             log.LogInformation($"line 1");
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
             request.Content = new StringContent("{permissionType: \"Contributor\",scope: \"Account\"}",
@@ -74,7 +91,7 @@ namespace processVideoFile
 
             var response = await client.SendAsync(request);
 
-            //log.LogInformation($"line 2");
+            log.LogInformation($"line 2");
             response.EnsureSuccessStatusCode();
 
             string jsonContent = await response.Content.ReadAsStringAsync();
@@ -84,11 +101,11 @@ namespace processVideoFile
             return accessToken.Trim('"');
         }
 
-        private static async Task UploadVideoAndIndex(string fileName, string accessToken, string accountId, string location, ILogger log, Uri uri)
+        private static async Task UploadVideoAndIndex(ProcessVideoFileConfig config, string fileName, string accessToken, ILogger log, Uri uri)
         {
-            string url = $"https://api.videoindexer.ai/{location}/Accounts/{accountId}/Videos?name={fileName}&videoUrl={uri}&accessToken={accessToken}";
+            string url = $"https://api.videoindexer.ai/{config.location}/Accounts/{config.accountId}/Videos?name={fileName}&videoUrl={uri}&accessToken={accessToken}";
             client.DefaultRequestHeaders.Clear();
-            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", Environment.GetEnvironmentVariable("VideoIndexerSubscriptionKey"));
+            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", config.subscriptionKey);
 
             // Add the Authorization header with the access token.
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
@@ -102,30 +119,32 @@ namespace processVideoFile
             log.LogInformation($"Video uploaded and indexing started. Response: {responseBody}");
         }
 
-        public static async Task SendToBlobStorage(string filePath, Uri uri, ILogger log)
+        public static async Task SendToBlobStorage(ProcessVideoFileConfig config ,string filePath, Uri uri, ILogger log)
         {
             // Create a BlobServiceClient
-            string storageConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings:AzureBlobStorage");
+
+            string storageConnectionString = config.dataFileConnectionString;
             var blobServiceClient = new BlobServiceClient(storageConnectionString);
 
             // Create or reference an existing container
-            var containerClient = blobServiceClient.GetBlobContainerClient("rusycontainertest");
+            string containerName = config.dataFileContainerName;
+            var containerClient = blobServiceClient.GetBlobContainerClient(containerName); // rusycontainertest --> processsedvideoinfo --> filename  | processed-video-information/filename
 
             // Split the full path by the '/' character
-            string[] parts = filePath.Split('/');
-
-            // The part after the '/' will be the last element of the array
-            string filename = "";
-            if (parts.Length > 1)
-            {
-                filename = parts[1]; // returns the second part, after the '/'
-            }
-            else
-            {
-                Console.WriteLine("FILENAME ERROR: " + filePath); // returns the original path if no '/' found
-            }
+            //string[] parts = filePath.Split('/');
+            string filename = filePath;
+            //// The part after the '/' will be the last element of the array
+            //string filename = "";
+            //if (parts.Length > 1)
+            //{
+            //    filename = parts[1]; // returns the second part, after the '/'
+            //}
+            //else
+            //{
+            //    Console.WriteLine("FILENAME ERROR: " + filePath); // returns the original path if no '/' found
+            //}
             // Define the directory path and the full blob name
-            string directoryPath = $"processed-video-information/{filename}";
+            string directoryPath = $"{filename}"; // processed-video-information/filename
             string blobName = $"{directoryPath}/generalInfo.json";
             log.LogInformation("Blob Name: " + blobName);
             // Prepare the file content as JSON
@@ -142,16 +161,17 @@ namespace processVideoFile
 
             // Upload the generalInfo.json file to the directory
             var blobClient = containerClient.GetBlobClient(blobName);
+            log.LogInformation($"blob client {blobClient.Name}, {blobClient.BlobContainerName}");
             await blobClient.UploadAsync(ms, new BlobHttpHeaders { ContentType = "application/json" }, conditions: null);
             log.LogInformation("File uploaded to Blob Storage.");
 
-            // One time, upload new mappings
+            ////One time, upload new mappings
             //TitleMappings newTitleMapping = new TitleMappings()
             //{
             //    filesList = new List<Mapping>()
             //};
-            //await UploadNewMappings(newTitleMapping, log);
-            // Update the title mappings to include the new video
+            //await UploadNewMappings(config, newTitleMapping, log);
+            ////Update the title mappings to include the new video
         }
 
         /// <summary>
@@ -181,9 +201,10 @@ namespace processVideoFile
         }
 
 
-        public static async Task UpdateVideosList(string filePath, ILogger log)
+        public static async Task UpdateVideosList(ProcessVideoFileConfig config, string filePath, ILogger log)
         {
-            TitleMappings titleMappings = await DownloadCurrentMappings(log);
+            TitleMappings titleMappings = await DownloadCurrentMappings(config, log);
+            log.LogInformation("title mappings downloaded");
             Mapping newMapping = new Mapping()
             {
                 videoName = filePath,
@@ -193,20 +214,22 @@ namespace processVideoFile
             // might be inefficient call 
             titleMappings.filesList.Insert(0, newMapping);
 
-            await UploadNewMappings(titleMappings, log);
+            await UploadNewMappings(config, titleMappings, log);
 
         }
 
-        public static async Task<TitleMappings> DownloadCurrentMappings(ILogger log)
+        public static async Task<TitleMappings> DownloadCurrentMappings(ProcessVideoFileConfig config, ILogger log)
         {
             // Create a BlobServiceClient
-            string storageConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings:AzureBlobStorage");
+            string storageConnectionString = config.dataFileConnectionString;
+            //string storageConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings:AzureBlobStorage");
             var blobServiceClient = new BlobServiceClient(storageConnectionString);
 
             // Create or reference an existing container
-            var containerClient = blobServiceClient.GetBlobContainerClient("rusycontainertest");
+            // TODO COME BACK HERE 
+            var containerClient = blobServiceClient.GetBlobContainerClient(config.dataFileContainerName);
 
-            string blobName = $"processed-video-information/titleMappings.json";
+            string blobName = $"titleMappings.json";//$"processed-video-information/titleMappings.json";
             var blobClient = containerClient.GetBlobClient(blobName);
             BlobDownloadInfo download = await blobClient.DownloadAsync();
 
@@ -223,23 +246,69 @@ namespace processVideoFile
         }
 
 
-        public static async Task UploadNewMappings(TitleMappings updatedMappings, ILogger log)
+        public static async Task UploadNewMappings(ProcessVideoFileConfig config, TitleMappings updatedMappings, ILogger log)
         {
             // Create a BlobServiceClient
-            string storageConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings:AzureBlobStorage");
+            string storageConnectionString = config.dataFileConnectionString; // Environment.GetEnvironmentVariable("ConnectionStrings:AzureBlobStorage");
             var blobServiceClient = new BlobServiceClient(storageConnectionString);
 
             // Create or reference an existing container
-            var containerClient = blobServiceClient.GetBlobContainerClient("rusycontainertest");
+            var containerClient = blobServiceClient.GetBlobContainerClient(config.dataFileContainerName); //"rusycontainertest"
 
             string jsonContent = JsonSerializer.Serialize(updatedMappings);
             byte[] byteArray = Encoding.UTF8.GetBytes(jsonContent);
             using var ms = new MemoryStream(byteArray);
 
-            string blobName = $"processed-video-information/titleMappings.json";
+            string blobName = $"titleMappings.json"; // processed-video-information
             var blobClient = containerClient.GetBlobClient(blobName);
             await blobClient.UploadAsync(ms, new BlobHttpHeaders { ContentType = "application/json" }, conditions: null);
         }
+    }
+
+    public class ProcessVideoFileConfig
+    {
+        public ProcessVideoFileConfig(
+            string apiKey,
+            string accountId,
+            string accountName,
+            string bearerAuthKey,
+            string location,
+            string resourceGroupName,
+            string subscriptionId,
+            string subscriptionKey,
+            string inputVideoConnectionString,
+            string inputVideoContainerName,
+            string dataFileConnectionString,
+            string dataFileContainerName
+            )
+        {
+            this.apiKey = apiKey;
+            this.accountId = accountId;
+            this.accountName = accountName;
+            this.bearerAuthKey = bearerAuthKey;
+            this.location = location;
+            this.resourceGroupName = resourceGroupName;
+            this.subscriptionId = subscriptionId;
+            this.subscriptionKey = subscriptionKey;
+            this.inputVideoConnectionString = inputVideoConnectionString;
+            this.inputVideoContainerName = inputVideoContainerName;
+            this.dataFileConnectionString = dataFileConnectionString;
+            this.dataFileContainerName = dataFileContainerName;
+        }
+
+        public string apiKey { get; }
+        public string accountId { get;}
+        public string accountName { get; }
+        public string bearerAuthKey { get; }
+        public string location { get; }
+        public string resourceGroupName { get;}
+        public string subscriptionId { get; }
+        public string subscriptionKey { get; }
+        public string inputVideoConnectionString { get; }
+        public string inputVideoContainerName { get; }
+        public string dataFileConnectionString { get; }
+        public string dataFileContainerName { get; }
+
     }
 }
 
