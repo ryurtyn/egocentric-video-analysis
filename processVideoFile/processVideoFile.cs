@@ -29,21 +29,22 @@ namespace processVideoFile
 
             // upload file to video indexer & start indexing
 
-            ProcessVideoFileConfig config = new ProcessVideoFileConfig(
-                Environment.GetEnvironmentVariable("VideoIndexerApiKey"),
-                Environment.GetEnvironmentVariable("VideoIndexerAccountId"),
-                Environment.GetEnvironmentVariable("VideoIndexerAccountName"),
-                Environment.GetEnvironmentVariable("BearerAuthKey"),
-                Environment.GetEnvironmentVariable("VideoIndexerLocation"),
-                Environment.GetEnvironmentVariable("VideoIndexerResourceGroup"),
-                Environment.GetEnvironmentVariable("VideoIndexerSubscriptionId"),
-                Environment.GetEnvironmentVariable("VideoIndexerSubscriptionKey"),
-                Environment.GetEnvironmentVariable("AzureBlobStorageInputVideoFilesConnectionString"),
-                Environment.GetEnvironmentVariable("AzureBlobStorageInputVideoFilesContainerName"),
-                Environment.GetEnvironmentVariable("AzureBlobStorageDataFilesConnectionString"),
-                Environment.GetEnvironmentVariable("AzureBlobStorageDataFilesContainerName")
 
+            ProcessVideoFileConfig config = new ProcessVideoFileConfig(
+                apiKey: Environment.GetEnvironmentVariable("VideoIndexerApiKey"),
+                accountId: Environment.GetEnvironmentVariable("VideoIndexerAccountId"),
+                accountName: Environment.GetEnvironmentVariable("VideoIndexerAccountName"),
+                bearerAuthKey: Environment.GetEnvironmentVariable("BearerAuthKey"),
+                location: Environment.GetEnvironmentVariable("VideoIndexerLocation"),
+                resourceGroupName: Environment.GetEnvironmentVariable("VideoIndexerResourceGroup"),
+                subscriptionId: Environment.GetEnvironmentVariable("VideoIndexerSubscriptionId"),
+                subscriptionKey: Environment.GetEnvironmentVariable("VideoIndexerSubscriptionKey"),
+                inputVideoConnectionString: Environment.GetEnvironmentVariable("AzureBlobStorageInputVideoFilesConnectionString"),
+                inputVideoContainerName: Environment.GetEnvironmentVariable("AzureBlobStorageInputVideoFilesContainerName"),
+                dataFileConnectionString: Environment.GetEnvironmentVariable("AzureBlobStorageDataFilesConnectionString"),
+                dataFileContainerName: Environment.GetEnvironmentVariable("AzureBlobStorageDataFilesContainerName")
                 );
+
             //string bearerAuthKey = Environment.GetEnvironmentVariable("BearerAuthKey");
             try
             {
