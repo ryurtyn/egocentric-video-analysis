@@ -11,29 +11,18 @@ namespace hello_rusy.Data
 	public class VideoMetadataService
 	{
 
-        public async Task UploadMetadata(string videoName, string metadataName, string fileContents, string blobConnectionString)
+        public async Task UploadMetadata(string videoName, string metadataName, string fileContents, EgocentricVideoConfig config)
         {
             // Create a BlobServiceClient
-            var blobServiceClient = new BlobServiceClient(blobConnectionString);
+            var blobServiceClient = new BlobServiceClient(config.dataFileConnectionString);
 
             // Create or reference an existing container
-            var containerClient = blobServiceClient.GetBlobContainerClient("rusycontainertest");
+            var containerClient = blobServiceClient.GetBlobContainerClient(config.dataFileContainerName);
 
-            // Split the full path by the '/' character
-            string[] parts = videoName.Split('/');
+            string filename = videoName;
 
-            // The part after the '/' will be the last element of the array
-            string filename = "";
-            if (parts.Length > 1)
-            {
-                filename = parts[1]; // returns the second part, after the '/'
-            }
-            else
-            {
-                Console.WriteLine("FILENAME ERROR: " + videoName); // returns the original path if no '/' found
-            }
             // Define the directory path and the full blob name
-            string directoryPath = $"processed-video-information/{filename}";
+            string directoryPath = $"{filename}";
             string blobName = $"{directoryPath}/{metadataName}";
             Console.WriteLine("BLOB UPLOAD NAME: " + blobName);
 
@@ -47,31 +36,18 @@ namespace hello_rusy.Data
             await blobClient.UploadAsync(ms, new BlobHttpHeaders { ContentType = "application/json" }, conditions: null);
         }
 
-        public async Task<string> DownloadMetadata(string videoName, string metadataName, string blobConnectionString)
+        public async Task<string> DownloadMetadata(string videoName, string metadataName, EgocentricVideoConfig config)
         {
             // Create a BlobServiceClient
-            var blobServiceClient = new BlobServiceClient(blobConnectionString);
+            var blobServiceClient = new BlobServiceClient(config.dataFileConnectionString);
 
             // Create or reference an existing container
-            var containerClient = blobServiceClient.GetBlobContainerClient("rusycontainertest");
+            var containerClient = blobServiceClient.GetBlobContainerClient(config.dataFileContainerName);
 
-            // Split the full path by the '/' character
-            string[] parts = videoName.Split('/');
+            string videoFilename = videoName;
 
-            // The part after the '/' will be the last element of the array
-            string videoFilename = "";
-            if (parts.Length > 1)
-            {
-                videoFilename = parts[1]; // returns the second part, after the '/'
-            }
-            else
-            {
-                Console.WriteLine("FILENAME ERROR: " + videoName); // returns the original path if no '/' found
-            }
-
-            // Construct the path to the generalInfo.json file
-            // TODO: can make this a configuration later (processed-video-information) 
-            string blobName = $"processed-video-information/{videoFilename}/{metadataName}";
+            string blobName = $"{videoFilename}/{metadataName}";
+            
             Console.WriteLine("BLOB NAME: " + blobName);
             var blobClient = containerClient.GetBlobClient(blobName);
 
@@ -86,18 +62,17 @@ namespace hello_rusy.Data
             }
         }
 
-        public async Task UpdateTitleMappings(string videoName, string summarizedTitle, string blobConnectionString)
+        public async Task UpdateTitleMappings(string videoName, string summarizedTitle, EgocentricVideoConfig config)
         {
             // get the videos <-> summaries mapping json from blob storage
             // Create a BlobServiceClient
-            var blobServiceClient = new BlobServiceClient(blobConnectionString);
+            var blobServiceClient = new BlobServiceClient(config.dataFileConnectionString);
 
             // Create or reference an existing container
-            var containerClient = blobServiceClient.GetBlobContainerClient("rusycontainertest");
+            var containerClient = blobServiceClient.GetBlobContainerClient(config.dataFileContainerName);
 
             // Construct the path to the generalInfo.json file
-            // TODO: can make this a configuration later (processed-video-information) 
-            string blobName = $"processed-video-information/titleMappings.json";
+            string blobName = $"titleMappings.json";
             Console.WriteLine("BLOB NAME: " + blobName);
             var blobClient = containerClient.GetBlobClient(blobName);
 
@@ -130,18 +105,17 @@ namespace hello_rusy.Data
             await blobClient.UploadAsync(ms, new BlobHttpHeaders { ContentType = "application/json" }, conditions: null);
         }
 
-        public async Task UpdateTitleMappingsProcessTime(string videoName, DateTime processedTime, string blobConnectionString)
+        public async Task UpdateTitleMappingsProcessTime(string videoName, DateTime processedTime, EgocentricVideoConfig config)
         {
             // get the videos <-> summaries mapping json from blob storage
             // Create a BlobServiceClient
-            var blobServiceClient = new BlobServiceClient(blobConnectionString);
+            var blobServiceClient = new BlobServiceClient(config.dataFileConnectionString);
 
             // Create or reference an existing container
-            var containerClient = blobServiceClient.GetBlobContainerClient("rusycontainertest");
+            var containerClient = blobServiceClient.GetBlobContainerClient(config.dataFileContainerName);
 
             // Construct the path to the generalInfo.json file
-            // TODO: can make this a configuration later (processed-video-information) 
-            string blobName = $"processed-video-information/titleMappings.json";
+            string blobName = $"titleMappings.json";
             Console.WriteLine("BLOB NAME: " + blobName);
             var blobClient = containerClient.GetBlobClient(blobName);
 
@@ -176,16 +150,16 @@ namespace hello_rusy.Data
         }
 
 
-        public async Task<string> DownloadTitleMappings(string blobConnectionString)
+        public async Task<string> DownloadTitleMappings(EgocentricVideoConfig config)
         {
             // Create a BlobServiceClient
-            var blobServiceClient = new BlobServiceClient(blobConnectionString);
+            var blobServiceClient = new BlobServiceClient(config.dataFileConnectionString);
 
             // Create or reference an existing container
-            var containerClient = blobServiceClient.GetBlobContainerClient("rusycontainertest");
+            var containerClient = blobServiceClient.GetBlobContainerClient(config.dataFileContainerName);
 
             // TODO: can make this a configuration later (processed-video-information) 
-            string blobName = $"processed-video-information/titleMappings.json";
+            string blobName = $"titleMappings.json";
             Console.WriteLine("BLOB NAME: " + blobName);
             var blobClient = containerClient.GetBlobClient(blobName);
 

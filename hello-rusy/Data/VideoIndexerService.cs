@@ -9,9 +9,9 @@ namespace hello_rusy.Data
 {
 	public class VideoIndexerService
 	{
-        public async Task<VideoIndexerResult> GetVideoInsights(string targetName, string accessToken, string accountId, string location, string subscriptionKey)
+        public async Task<VideoIndexerResult> GetVideoInsights(string targetName, EgocentricVideoConfig config)
         {
-            VideoIndexerList listOfResults = await GetAllVideos(accessToken, accountId, location, subscriptionKey);
+            VideoIndexerList listOfResults = await GetAllVideos(config);
 
 
             VideoIndexerResult? foundResult = null;
@@ -27,18 +27,18 @@ namespace hello_rusy.Data
             }
             if (foundResult != null)
             {
-                resultIndex = await RequestResult(foundResult.VideoId!, accessToken, accountId, location, subscriptionKey);
+                resultIndex = await RequestResult(foundResult.VideoId!, config);
             }
             return resultIndex;
         }
 
-        public async Task<VideoIndexerList> GetAllVideos(string accessToken, string accountId, string location, string subscriptionKey)
+        public async Task<VideoIndexerList> GetAllVideos(EgocentricVideoConfig config)
         {
             HttpClient client = new HttpClient();
-            string url = $"https://api.videoindexer.ai/{location}/Accounts/{accountId}/Videos?accessToken={accessToken}";
+            string url = $"https://api.videoindexer.ai/{config.videoIndexerLocation}/Accounts/{config.videoIndexerAccountId}/Videos?accessToken={config.videoIndexerApiKey}";
             client.DefaultRequestHeaders.Clear();
-            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", subscriptionKey);
-            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", config.videoIndexerSubscriptionKey);
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", config.videoIndexerApiKey);
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url);
 
             var response = await client.SendAsync(request);
@@ -48,13 +48,13 @@ namespace hello_rusy.Data
             return listResult;
         }
 
-        private async Task<VideoIndexerResult> RequestResult(string videoId, string accessToken, string accountId, string location, string subscriptionKey)
+        private async Task<VideoIndexerResult> RequestResult(string videoId, EgocentricVideoConfig config)
         {
             HttpClient client = new HttpClient();
-            string url = $"https://api.videoindexer.ai/{location}/Accounts/{accountId}/Videos/{videoId}/Index?accessToken={accessToken}";
+            string url = $"https://api.videoindexer.ai/{config.videoIndexerLocation}/Accounts/{config.videoIndexerAccountId}/Videos/{videoId}/Index?accessToken={config.videoIndexerApiKey}";
             client.DefaultRequestHeaders.Clear();
-            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", subscriptionKey);
-            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", config.videoIndexerSubscriptionKey);
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", config.videoIndexerApiKey);
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url);
 

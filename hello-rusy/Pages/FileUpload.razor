@@ -45,14 +45,11 @@
 
     private async Task UploadFile()
     {
-        // TODO: make sure the filename is under 80 characters. If it goes over the limit, rename it (md5 hash) 
+        // TODO: make sure you can't submit one file twice 
         if (file == null) return; // Check if a file has been selected
         fileSubmitted = true;
 
         // Retrieve configuration settings
-        //string blobUriString = Configuration["AzureBlobStorage:BlobUri"]; // old not needed 
-        //string sasToken = Configuration["AzureBlobStorage:SasToken"]; // old not needed
-        //string blobConnectionString = Configuration["ConnectionStrings:AzureBlobStorage"]; // connection string redesign 
         string blobConnectionString = Configuration["AzureBlobStorageInputVideoFiles:ConnectionString"];
         string containerName = Configuration["AzureBlobStorageInputVideoFiles:ContainerName"];
 
@@ -67,7 +64,6 @@
 
         // Ensure the filename is under 80 characters after adding the timestamp
         // If it goes over the limit, you can hash the filename
-        // For simplicity, this example truncates the filename before appending the timestamp
         int maxFilenameLength = 80 - timestamp.Length - extension.Length - 1; // -1 for the underscore
                                                                               // If the filename is longer than 80 characters, truncate it 
         string safeFilename = filenameWithoutExtension.Length > maxFilenameLength ? filenameWithoutExtension.Substring(0, maxFilenameLength) : filenameWithoutExtension;
@@ -83,11 +79,7 @@
         string blobName = $"{uploadFileName}";
         Console.WriteLine("Blob Name: " + blobName);
 
-        //Uri blobUri = new Uri($"{blobUriString}/{uploadFileName}?{sasToken}");
-        //Console.WriteLine("BLOB URI: ", blobUri);
-        // Create a BlobClient using the Blob URI with the SAS Token
         var blobClient = containerClient.GetBlobClient(blobName);
-        //BlobClient blobClient = new BlobClient(blobUri);
 
         // Upload the file
         await using (var stream = file.OpenReadStream(maxAllowedSize: 155214716)) // Adjust the maxAllowedSize as necessary

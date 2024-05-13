@@ -24,7 +24,7 @@ else
             <th> Title</th>
             <th> Created On</th>
             <th> Last Processed</th>
-            <!--<th> Actions</th>--> <!-- New column for actions -->
+            <th> Actions</th> 
         </tr>
     </thead >
     <tbody >
@@ -57,19 +57,20 @@ else
                         }
                     </td>
 
-                    <!--<td>
-                        <!-- Button to trigger data processing -->
-                        <!--@if (!(mapping.isProcessing))
+                    <td>
+                        @*Button to trigger data processing*@
+                        @if (!(mapping.isProcessing))
                         {
-                            <button class="btn-primary" @onclick="(async () => await ProcessButtonClick(mapping))"> Process</button>
+                            @*<span class="spinner"></span>*@
+                            <button class="btn-primary" @onclick="(async () => await ProcessButtonClick(mapping, config))"> Process</button>
                         }
                         else
                         {
 
                             <span class="spinner"></span>
-                        }-->
+                        }
                         @*<button @onclick="(() => await GenerateInsights(mapping.videoName))">Process</button>*@
-                    @*</td>-->*@
+                    </td>
 
                 </tr>
         }
@@ -80,15 +81,27 @@ else
 @code {
     private VideoIndexerList? videoIndexerList;
     private TitleMappings? titleMappings;
+    private EgocentricVideoConfig config;
 
     protected override async Task OnInitializedAsync()
     {
-        string accessToken = Configuration["VideoIndexer:AccessToken"];
-        string accountId = Configuration["VideoIndexer:AccountId"];
-        string location = Configuration["VideoIndexer:Location"];
-        string subscriptionKey = Configuration["VideoIndexer:SubscriptionKey"];
+        //string accessToken = Configuration["VideoIndexer:AccessToken"];
+        //string accountId = Configuration["VideoIndexer:AccountId"];
+        //string location = Configuration["VideoIndexer:Location"];
+        //string subscriptionKey = Configuration["VideoIndexer:SubscriptionKey"];
 
-        titleMappings = await LoadTitleMappings();
+        config = new EgocentricVideoConfig(
+            videoIndexerApiKey: Configuration["VideoIndexer:AccessToken"],
+            videoIndexerAccountId: Configuration["VideoIndexer:AccountId"],
+            videoIndexerLocation: Configuration["VideoIndexer:Location"],
+            videoIndexerSubscriptionKey: Configuration["VideoIndexer:SubscriptionKey"],
+            dataFileConnectionString: Configuration?["AzureBlobStorageDataFiles:ConnectionString"] ?? "",
+            dataFileContainerName: Configuration?["AzureBlobStorageDataFiles:ContainerName"] ?? "",
+            openAIApiKey: Configuration?["OpenAI:APIKey"] ?? "",
+            languageServiceApiKey: Configuration?["LanguageAI:SubscriptionKey"] ?? ""
+            );
+
+        titleMappings = await LoadTitleMappings(config);
 
         //string blobConnectionString = Configuration?["ConnectionStrings:AzureBlobStorage"] ?? "";
         ////videoIndexerList = await videoIndexerServiceInstance.GetAllVideos(accessToken, accountId, location, subscriptionKey);
@@ -97,12 +110,12 @@ else
 
     }
 
-    private async Task<TitleMappings> LoadTitleMappings()
+    private async Task<TitleMappings> LoadTitleMappings(EgocentricVideoConfig config)
     {
-        string blobConnectionString = Configuration?["ConnectionStrings:AzureBlobStorage"] ?? "";
+        string blobConnectionString = config.dataFileConnectionString;
         //videoIndexerList = await videoIndexerServiceInstance.GetAllVideos(accessToken, accountId, location, subscriptionKey);
         VideoMetadataController videoMetadataControllerInstance = new VideoMetadataController(videoIndexerServiceInstance, openAIServiceInstance, videoMetadataServiceInstance, languageAIServiceInstance);
-        titleMappings = await videoMetadataControllerInstance.RetrieveTitleMappings(blobConnectionString);
+        titleMappings = await videoMetadataControllerInstance.RetrieveTitleMappings(config);
         return titleMappings;
     }
 
@@ -112,28 +125,29 @@ else
         NavigationManager.NavigateTo(uri.ToString());
     }
 
-    private async Task ProcessButtonClick(Mapping mapping)
+    private async Task ProcessButtonClick(Mapping mapping, EgocentricVideoConfig config)
     {
         mapping.isProcessing = true;
-        await GenerateInsights(mapping.videoName);
-        titleMappings = await LoadTitleMappings();
+        await GenerateInsights(mapping.videoName, config);
+        titleMappings = await LoadTitleMappings(config);
         mapping.isProcessing = false;
     }
 
-    private async Task GenerateInsights(string filename)
+    private async Task GenerateInsights(string filename, EgocentricVideoConfig config)
     {
         //TODO: create your own configuration object to make it easier to pass in configurations
-        string accessToken = Configuration?["VideoIndexer:AccessToken"] ?? "";
-        string accountId = Configuration?["VideoIndexer:AccountId"] ?? "";
-        string location = Configuration?["VideoIndexer:Location"] ?? "";
-        string subscriptionKey = Configuration?["VideoIndexer:SubscriptionKey"] ?? "";
-        string blobConnectionString = Configuration?["ConnectionStrings:AzureBlobStorage"] ?? "";
-        string openAIKey = Configuration?["OpenAI:APIKey"] ?? "";
-        string languageServiceAPIKey = Configuration?["LanguageAI:SubscriptionKey"] ?? "";
+        //string accessToken = Configuration?["VideoIndexer:AccessToken"] ?? "";
+        //string accountId = Configuration?["VideoIndexer:AccountId"] ?? "";
+        //string location = Configuration?["VideoIndexer:Location"] ?? "";
+        //string subscriptionKey = Configuration?["VideoIndexer:SubscriptionKey"] ?? "";
+        //string blobConnectionString = Configuration?["ConnectionStrings:AzureBlobStorage"] ?? "";
+        //string openAIKey = Configuration?["OpenAI:APIKey"] ?? "";
+        //string languageServiceAPIKey = Configuration?["LanguageAI:SubscriptionKey"] ?? "";
+
 
         // Initialize video media controller with relevant services passed in
         VideoMetadataController videoMetadataControllerInstance = new VideoMetadataController(videoIndexerServiceInstance, openAIServiceInstance, videoMetadataServiceInstance, languageAIServiceInstance);
-        await videoMetadataControllerInstance.GenerateAllMetadata(filename, accessToken, accountId, location, subscriptionKey, blobConnectionString, openAIKey, languageServiceAPIKey);
+        await videoMetadataControllerInstance.GenerateAllMetadata(filename, config);
 
         //string blobConnectionString = Configuration["ConnectionStrings:AzureBlobStorage"];
         //await VideoMetadataServiceInstance.GenerateInsights(filename, blobConnectionString);

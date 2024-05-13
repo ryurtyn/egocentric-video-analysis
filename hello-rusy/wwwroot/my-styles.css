@@ -12,15 +12,14 @@
 }
 
 
-.spinner
-{
+.spinner {
     border: 4px solid silver;
     border-top: 4px solid #337AB7;
     border-radius: 50%;
     width: 20px;
     height: 20px;
     animation: spin 700ms linear infinite;
-    position: absolute;
+    display:block;
 }
 
 

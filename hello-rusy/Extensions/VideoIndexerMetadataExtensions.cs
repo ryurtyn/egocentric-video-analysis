@@ -7,7 +7,7 @@ namespace hello_rusy.Extensions
 {
 	public static class VideoIndexerMetadataExtensions
     {
-        public static VideoIndexerMetadata ConvertToVideoIndexerMetadata(this VideoIndexerResult videoIndexerResult, string accessToken, string accountId, string location)
+        public static VideoIndexerMetadata ConvertToVideoIndexerMetadata(this VideoIndexerResult videoIndexerResult, EgocentricVideoConfig config)
 		{
             // Get transcript text
             List<string> transcriptTexts = GetTranscriptText(videoIndexerResult);
@@ -16,7 +16,7 @@ namespace hello_rusy.Extensions
             List<string> transcriptTimes = GetTranscriptTimes(videoIndexerResult);
 
 
-            List<List<string>> keyframeShots = GetVideoKeyframesByShot(videoIndexerResult, accessToken, accountId, location);
+            List<List<string>> keyframeShots = GetVideoKeyframesByShot(videoIndexerResult, config);
             ////keyframeUrls = VideoIndexerServiceInstance.GetVideoKeyframes(videoInformation, accessToken, accountId, location);
 
             List<string> labels = GetLabels(videoIndexerResult);
@@ -85,13 +85,13 @@ namespace hello_rusy.Extensions
         }
 
         // For getting key frames 
-        private static string GetKeyFrameUrl(string thumbnailId, string videoId, string accessToken, string accountId, string location)
+        private static string GetKeyFrameUrl(string thumbnailId, string videoId, EgocentricVideoConfig config )
         {
-            string url = $"https://api.videoindexer.ai/{location}/Accounts/{accountId}/Videos/{videoId}/Thumbnails/{thumbnailId}?accessToken={accessToken}";
+            string url = $"https://api.videoindexer.ai/{config.videoIndexerLocation}/Accounts/{config.videoIndexerAccountId}/Videos/{videoId}/Thumbnails/{thumbnailId}?accessToken={config.videoIndexerApiKey}";
             return url;
         }
 
-        private static List<List<string>> GetVideoKeyframesByShot(VideoIndexerResult videoIndexerResult, string accessToken, string accountId, string location)
+        private static List<List<string>> GetVideoKeyframesByShot(VideoIndexerResult videoIndexerResult, EgocentricVideoConfig config)
         {
             string thumbnailId;
             string thumbnailUrl;
@@ -116,7 +116,7 @@ namespace hello_rusy.Extensions
                                         foreach (var currentInstance in keyFrame.Instances)
                                         {
                                             thumbnailId = currentInstance.ThumbnailId.ToString()!;
-                                            thumbnailUrl = GetKeyFrameUrl(thumbnailId, videoId, accessToken, accountId, location);
+                                            thumbnailUrl = GetKeyFrameUrl(thumbnailId, videoId, config);
                                             shotList.Add(thumbnailUrl);
                                         }
                                     }

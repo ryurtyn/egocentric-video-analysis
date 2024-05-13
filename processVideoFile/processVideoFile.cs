@@ -227,7 +227,6 @@ namespace processVideoFile
             var blobServiceClient = new BlobServiceClient(storageConnectionString);
 
             // Create or reference an existing container
-            // TODO COME BACK HERE 
             var containerClient = blobServiceClient.GetBlobContainerClient(config.dataFileContainerName);
 
             string blobName = $"titleMappings.json";//$"processed-video-information/titleMappings.json";

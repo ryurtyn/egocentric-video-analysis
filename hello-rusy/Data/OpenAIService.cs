@@ -9,7 +9,7 @@ namespace hello_rusy.Data
 {
     public class OpenAIService
     {
-        public async Task<ToDoList> RequestChatResponse(List<string> transcripts, List<string> timestamps, string apiKey)
+        public async Task<ToDoList> RequestChatResponse(List<string> transcripts, List<string> timestamps, EgocentricVideoConfig config)
         {
 
             //string message =
@@ -19,7 +19,7 @@ namespace hello_rusy.Data
             //    " {todos: [{index: 0, timestamp: 0:00:26:93, task: 'This is the given task.'}, {index: 1, timestamp: 0:00:45:23, task: 'This is the second task.'}]}. " +
             //    "Make sure every task in the transcript is displayed in your result.";
             string message = ConstructTranscriptMessage(transcripts, timestamps);
-            OpenAiResponse chatResponse = await CallChatCompletion(message, apiKey);
+            OpenAiResponse chatResponse = await CallChatCompletion(message, config.openAIApiKey);
             string responseMessage = extractResponseString(chatResponse);
             Console.WriteLine(responseMessage);
             ToDoList toDoList = JsonSerializer.Deserialize<ToDoList>(responseMessage)!;

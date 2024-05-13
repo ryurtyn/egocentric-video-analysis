@@ -51,10 +51,10 @@ namespace hello_rusy.Data
             return summarizerInput;
         }
 
-        public async Task<TextSummarizerResult> getTextSummary(string subscriptionKey, List<string> transcripts)
+        public async Task<TextSummarizerResult> getTextSummary(EgocentricVideoConfig config, List<string> transcripts)
         {
             SummarizeTextInput inputBody = MapVideoTranscriptToSummarizerInput(transcripts);
-            string operationLocation = await getOperationLocation(subscriptionKey, inputBody);
+            string operationLocation = await getOperationLocation(config.languageServiceApiKey, inputBody);
 
             bool finished = false;
             int maxRetries = 20; // For example, to avoid infinite loop
@@ -64,7 +64,7 @@ namespace hello_rusy.Data
             while (!finished && attempts < maxRetries)
             {
                 // Assuming getSummaryResponse checks the status and returns null if not completed
-                summaryResult = await getSummaryResponse(subscriptionKey, operationLocation);
+                summaryResult = await getSummaryResponse(config.languageServiceApiKey, operationLocation);
                 if (summaryResult.Status.Equals("succeeded") || summaryResult.Status.Equals("failed")|| summaryResult.Status.Equals("canceled"))
                 {
                     finished = true;

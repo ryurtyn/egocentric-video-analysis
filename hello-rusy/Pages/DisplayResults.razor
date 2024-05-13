@@ -144,6 +144,8 @@ else
     private ElementReference videoElement;
     public string videoUrl;
 
+    private EgocentricVideoConfig config;
+
     //[Parameter]
     //public double StartTime { get; set; } = 0; // default to start at the beginning
 
@@ -158,19 +160,39 @@ else
             videoId = videoIds.First(); // Assuming you're passing a single ID
             await Submit(); // Automatically fetch and display the results
         }
+
+        //config = new EgocentricVideoConfig(
+        //    videoIndexerApiKey: Configuration["VideoIndexer:AccessToken"],
+        //    videoIndexerAccountId: Configuration["VideoIndexer:AccountId"],
+        //    videoIndexerLocation: Configuration["VideoIndexer:Location"],
+        //    videoIndexerSubscriptionKey: Configuration["VideoIndexer:SubscriptionKey"],
+        //    dataFileConnectionString: Configuration?["AzureBlobStorageDataFiles:ConnectionString"] ?? "",
+        //    dataFileContainerName: Configuration?["AzureBlobStorageDataFiles:ContainerName"] ?? "",
+        //    openAIApiKey: Configuration?["OpenAI:APIKey"] ?? "",
+        //    languageServiceApiKey: Configuration?["LanguageAI:SubscriptionKey"] ?? ""
+        //);
     }
 
     private async Task Submit()
     {
-        string blobConnectionString = Configuration?["ConnectionStrings:AzureBlobStorage"] ?? "";
-
+        //string blobConnectionString = Configuration?["ConnectionStrings:AzureBlobStorage"] ?? "";
+        config = new EgocentricVideoConfig(
+            videoIndexerApiKey: Configuration["VideoIndexer:AccessToken"],
+            videoIndexerAccountId: Configuration["VideoIndexer:AccountId"],
+            videoIndexerLocation: Configuration["VideoIndexer:Location"],
+            videoIndexerSubscriptionKey: Configuration["VideoIndexer:SubscriptionKey"],
+            dataFileConnectionString: Configuration?["AzureBlobStorageDataFiles:ConnectionString"] ?? "",
+            dataFileContainerName: Configuration?["AzureBlobStorageDataFiles:ContainerName"] ?? "",
+            openAIApiKey: Configuration?["OpenAI:APIKey"] ?? "",
+            languageServiceApiKey: Configuration?["LanguageAI:SubscriptionKey"] ?? ""
+        );
         VideoMetadataController videoMetadataControllerInstance = new VideoMetadataController(videoIndexerServiceInstance, openAIServiceInstance, videoMetadataServiceInstance, languageAIServiceInstance);
-        VideoMetadata videoMetadata = await videoMetadataControllerInstance.RetrieveGeneralMetadata(videoId, blobConnectionString);
+        VideoMetadata videoMetadata = await videoMetadataControllerInstance.RetrieveGeneralMetadata(videoId, config);
         videoUrl = videoMetadata.VideoUrl; // TODO: PROBABLY NOT SECURE
         summarizedTitle = videoMetadata.SummarizedTitle;
         //dateProcessed = videoMetadata.ProcessedDate;
-        todos = await videoMetadataControllerInstance.RetrieveOpenAIMetadata(videoId, blobConnectionString);
-        VideoIndexerMetadata videoIndexerMetadata = await videoMetadataControllerInstance.RetrieveVideoIndexerMetadata(videoId, blobConnectionString);
+        todos = await videoMetadataControllerInstance.RetrieveOpenAIMetadata(videoId, config);
+        VideoIndexerMetadata videoIndexerMetadata = await videoMetadataControllerInstance.RetrieveVideoIndexerMetadata(videoId, config);
         keyframeUrls = videoIndexerMetadata.KeyframeShots;
 
         transcripts = videoIndexerMetadata.Transcripts;
