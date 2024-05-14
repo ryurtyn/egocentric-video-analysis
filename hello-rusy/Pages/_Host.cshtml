@@ -33,13 +33,11 @@
 
     <script src="_framework/blazor.server.js"></script>
     <script>
+        // sets the time of video in Display Results page 
         function setVideoCurrentTime(videoId, time) {
             console.log("Video ID: " + videoId + ", Time: " + time);
             const video = document.getElementById(videoId);
             if (video) {
-                console.log("Old time: " + video.currentTime);
-                console.log("Time: " + time);
-                //video.pause();
                 video.currentTime = time;
                 video.play();
                 console.log("New Time: " + video.currentTime);
@@ -49,7 +47,7 @@
         }
 
         
-
+        // changes the color of the current task in Display Results page 
         function timestampTaskFeedback() {
             let maxTries = 10;
             let numTries = 0;
@@ -66,7 +64,6 @@
                         });
                     
                 }
-
 
                 video.addEventListener('play', () => {
                     video._updateInterval = setInterval(() => {

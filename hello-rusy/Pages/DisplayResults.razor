@@ -22,7 +22,6 @@
         <div style="flex: 3; min-width: 300px;">
             <button class="state-refresh-button" id="stateRefreshButton" @onclick="() => StateHasChanged()"></button>
             <ol>
-                @*@foreach (var todo in todos.ToDos)*@
                 @for (int i = 0; i < todos.ToDos.Count; i++)
                     {
                         bool isActive = activeToDoItems.Contains(i);
@@ -83,27 +82,15 @@ else
 }
 
 @code {
+    private bool responseReceived = false;
     private string videoId;
 
-
-    private VideoIndexerResult videoInformation;
-    private string fileName;
-    private string state;
     private List<string> transcripts;
-    private List<string> transcriptTimes;
-    
-    private List<List<string>> keyframeUrls;
-
     private List<string> keywords;
     private string keywordsString;
 
-    private bool responseReceived = false;
-
-    private TextSummarizerResult textSummaryResult;
-
     private string summarizedTitle;
 
-    private string openAIResult;
     private static ToDoList todos;
     private static List<int> activeToDoItems = new List<int>();
 
@@ -137,11 +124,10 @@ else
         );
         VideoMetadataController videoMetadataControllerInstance = new VideoMetadataController(videoIndexerServiceInstance, openAIServiceInstance, videoMetadataServiceInstance, languageAIServiceInstance);
         VideoMetadata videoMetadata = await videoMetadataControllerInstance.RetrieveGeneralMetadata(videoId, config);
-        videoUrl = videoMetadata.VideoUrl; // TODO: PROBABLY NOT SECURE
+        videoUrl = videoMetadata.VideoUrl;
         summarizedTitle = videoMetadata.SummarizedTitle;
         todos = await videoMetadataControllerInstance.RetrieveOpenAIMetadata(videoId, config);
         VideoIndexerMetadata videoIndexerMetadata = await videoMetadataControllerInstance.RetrieveVideoIndexerMetadata(videoId, config);
-        keyframeUrls = videoIndexerMetadata.KeyframeShots;
         transcripts = videoIndexerMetadata.Transcripts;
         keywords = videoIndexerMetadata.Keywords;
         responseReceived = true;
@@ -150,7 +136,6 @@ else
     private async Task SeekTo(string timestamp)
     {
         int timestampDouble = ConvertTimeToSeconds(timestamp);
-        Console.WriteLine("TIMESTAMP: " + timestampDouble);
         await JS.InvokeVoidAsync("setVideoCurrentTime", "myVideoPlayer", timestampDouble.ToString());
     }
 
@@ -193,9 +178,7 @@ else
     {
             if (todos != null) {
                 List<ToDoItem> todoItems = todos.ToDos;
-                Console.WriteLine($"TODOS: {todoItems}");
                 List<float> timestamps = new List<float>();
-                //timestamps.Add(0);
                 foreach (ToDoItem item in todoItems)
                 {
                     int timestamp = ConvertTimeToSeconds(item.Timestamp);
@@ -211,11 +194,4 @@ else
                 return Task.FromResult(new List<int>());
             }
         }
-
-    [JSInvokable]
-    public static Task<int[]> ReturnArrayAsync()
-    {
-        Console.WriteLine("return array async method invoked");
-        return Task.FromResult(new int[] { 1, 2, 3 });
-    }
 }
