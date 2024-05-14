@@ -12,8 +12,7 @@ The prototype is built with the following structure in mind: an instructor will 
 
 This project is built using a suite of Microsoft Azure services. User interactions are facilitated on a Blazor webapp. Background processing is run on an Azure Function. 
 
-![workflow](images/Pasted%20image%2020240514163926.png)
-<!-- ![[images/Pasted image 20240514163926.png]] -->
+![workflow](images/project-workflow.png)
 
 ### Blazor WebApp
 The Blazor WebApp handles user inputs and interactions. It has three public pages: a home page, upload, and view.
@@ -21,8 +20,13 @@ The Blazor WebApp handles user inputs and interactions. It has three public page
 #### Upload Page 
 The upload page allows a user to upload a new video. The selected video is uploaded to an Azure storage container in Blob Storage. Each new upload will trigger the background Azure function "ProcessVideoFile". 
 
+![upload](images/upload.png)
+
 #### View Page 
 The view page is where a student would navigate to view the processed instructional content. The first view of this page is a list of all uploaded videos. The user can then select a single video and is redirected to view the information for that specific video.
+
+![list-results](images/list-result.png)
+![single-result](images/single-result.png)
 
 ### Azure Function
 The Azure Function handles background processing. It watches for new videos to be uploaded to the specified Blob Storage Container. When a file is uploaded, it retrieves that file and generates metadata for the file. This metadata is then saved in a different Blob Storage Container for future retrieval. 
