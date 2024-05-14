@@ -12,7 +12,8 @@ The prototype is built with the following structure in mind: an instructor will 
 
 This project is built using a suite of Microsoft Azure services. User interactions are facilitated on a Blazor webapp. Background processing is run on an Azure Function. 
 
-![[Pasted image 20240514163926.png]]
+![workflow](images/Pasted%20image%2020240514163926.png)
+<!-- ![[images/Pasted image 20240514163926.png]] -->
 
 ### Blazor WebApp
 The Blazor WebApp handles user inputs and interactions. It has three public pages: a home page, upload, and view.
