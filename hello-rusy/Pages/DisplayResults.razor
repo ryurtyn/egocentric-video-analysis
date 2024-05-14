@@ -20,16 +20,18 @@
     <h2>Tasks</h2>
     <div style="display: flex; flex-wrap: wrap; gap: 20px;">
         <div style="flex: 3; min-width: 300px;">
-
+            <button class="state-refresh-button" id="stateRefreshButton" @onclick="() => StateHasChanged()"></button>
             <ol>
-                @foreach (var todo in todos.ToDos)
-                {
-                    <li>
-                        <button class="btn-primary" @onclick="() => SeekTo(todo.Timestamp)">&#9205;</button>
-                        @todo.Task
-                    </li>
-                }
-            </ol>
+                @*@foreach (var todo in todos.ToDos)*@
+                @for (int i = 0; i < todos.ToDos.Count; i++)
+                    {
+                        bool isActive = activeToDoItems.Contains(i);
+                        <li>
+                            <button class="btn-primary@(isActive?"-active":"")" id="todo-buttons-@i" @onclick="() => SeekTo(todos.ToDos[i].Timestamp)">&#9205;</button>
+                            @todos.ToDos[i].Task
+                        </li>
+                    }
+                </ol>
         </div>
 
         <div style="flex: 2; min-width: 300px; max-width: 600px;">
@@ -41,23 +43,14 @@
             @code {
                 private ElementReference videoElement; // Reference to the video element
                 public string videoUrl; // URL of the video to play
-
                 // Call JavaScript to attach event listeners once the video element is available
                 protected override async Task OnAfterRenderAsync(bool firstRender)
                 {
                     if (firstRender)
                     {
-                        await JS.InvokeVoidAsync("setupVideoTimestampFeedback");
+                        await JS.InvokeVoidAsync("timestampTaskFeedback");
                     }
                 }
-
-                // Example function to set video source dynamically and ensure JS is called
-                //private async Task UpdateVideoSource(string newVideoUrl)
-                //{
-                //    videoUrl = newVideoUrl;
-                //    // You might need to invoke the JS function here too if the video source can change after the initial render
-                //    await JS.InvokeVoidAsync("timestampTaskFeedback");
-                //}
             }
 
         </div>
@@ -98,6 +91,7 @@ else
     private string state;
     private List<string> transcripts;
     private List<string> transcriptTimes;
+    
     private List<List<string>> keyframeUrls;
 
     private List<string> keywords;
@@ -110,7 +104,8 @@ else
     private string summarizedTitle;
 
     private string openAIResult;
-    private ToDoList todos;
+    private static ToDoList todos;
+    private static List<int> activeToDoItems = new List<int>();
 
     private EgocentricVideoConfig config;
 
@@ -152,27 +147,11 @@ else
         responseReceived = true;
     }
 
-
-    private async Task OnMetadataLoaded()
-    {
-        await JS.InvokeVoidAsync("timestampTaskFeedback");
-        //await JS.InvokeVoidAsync("eval", $"document.getElementById('myVideoPlayer').currentTime = {StartTime};");
-    }
-
     private async Task SeekTo(string timestamp)
     {
         int timestampDouble = ConvertTimeToSeconds(timestamp);
-        //StartTime = timestampDouble;
         Console.WriteLine("TIMESTAMP: " + timestampDouble);
         await JS.InvokeVoidAsync("setVideoCurrentTime", "myVideoPlayer", timestampDouble.ToString());
-        //await JS.InvokeVoidAsync("eval", $"document.getElementById('myVideoPlayer').currentTime = {timestampDouble.ToString()};");
-    }
-
-    private async Task timestampFeedback()
-    {
-        //await JSRuntime.InvokeVoidAsync("timestampTaskFeedback");
-        await JS.InvokeVoidAsync("timestampTaskFeedback");
-
     }
 
     public static int ConvertTimeToSeconds(string time)
@@ -184,5 +163,59 @@ else
         }
 
         return (int)totalSeconds;
+    }
+
+    public static List<int> FindActiveIndices(List<float> timestamps, float currentTimestamp)
+        {
+            float maxValueUnderCurrent = int.MinValue;
+            List<int> active_indices = new List<int>();
+
+            foreach (var timestamp in timestamps)
+            {
+                if (timestamp < currentTimestamp && timestamp > maxValueUnderCurrent)
+                {
+                    maxValueUnderCurrent = timestamp;
+                }
+            }
+
+            for (int i = 0; i < timestamps.Count; i++ )
+            {
+                if (timestamps[i] == maxValueUnderCurrent)
+                {
+                    active_indices.Add(i);
+                }
+            }
+            return active_indices;
+        }
+
+    [JSInvokable]
+    public static Task<List<int>> ChangeActiveTimestamp(float currentTime)
+    {
+            if (todos != null) {
+                List<ToDoItem> todoItems = todos.ToDos;
+                Console.WriteLine($"TODOS: {todoItems}");
+                List<float> timestamps = new List<float>();
+                //timestamps.Add(0);
+                foreach (ToDoItem item in todoItems)
+                {
+                    int timestamp = ConvertTimeToSeconds(item.Timestamp);
+                    timestamps.Add((float)timestamp);
+                }
+                List<int> activeIndices = FindActiveIndices(timestamps, currentTime);
+                activeToDoItems = activeIndices;
+                return Task.FromResult(activeIndices);
+                
+            } else
+            {
+                activeToDoItems = new List<int>();
+                return Task.FromResult(new List<int>());
+            }
+        }
+
+    [JSInvokable]
+    public static Task<int[]> ReturnArrayAsync()
+    {
+        Console.WriteLine("return array async method invoked");
+        return Task.FromResult(new int[] { 1, 2, 3 });
     }
 }

@@ -18,8 +18,23 @@ a, .btn-link {
     border-color: #1861ac;
 }
 
+
+.btn-primary-active {
+    color: #fff;
+    background-color: red;
+    border-color: #1861ac;
+}
+
+.state-refresh-button {
+    width: 0px;
+    height: 0px;
+    border: 0px;
+    margin: 0px;
+    padding: 0px;
+}
+
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
 .content {

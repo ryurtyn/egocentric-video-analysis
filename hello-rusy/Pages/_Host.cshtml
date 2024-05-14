@@ -48,47 +48,39 @@
             }
         }
 
-        function setupVideoTimestampFeedback() {
-            var video = document.getElementById('myVideoPlayer');
-
-            video.addEventListener('loadedmetadata', () => {
-                console.log("Video metadata loaded.");
-                video._updateInterval = setInterval(() => {
-                    console.log('currentTime of the player is:', video.currentTime);
-                }, 1000);
-            });
-
-            video.addEventListener('play', () => {
-                if (!video._updateInterval) {
-                    video._updateInterval = setInterval(() => {
-                        console.log('currentTime of the player is:', video.currentTime);
-                    }, 1000);
-                }
-            }, true);
-
-            video.addEventListener('pause', () => {
-                if (video._updateInterval) {
-                    clearInterval(video._updateInterval);
-                    video._updateInterval = null;
-                }
-            }, true);
-        }
+        
 
         function timestampTaskFeedback() {
-            console.log("Function called");
-            var video = document.getElementById('myVideoPlayer');	
+            let maxTries = 10;
+            let numTries = 0;
+            var video = document.getElementById('myVideoPlayer');
 
-            var highlightCurrentTask = function highlightCurrentTask() {
-                console.log('currentTime of the player is:', video.currentTime);
+            if (video) {
+                var highlightCurrentTask = function highlightCurrentTask() {
+                    console.log('currentTime of the player is:', video.currentTime);
+                    
+                    DotNet.invokeMethodAsync('hello-rusy', 'ChangeActiveTimestamp', video.currentTime)
+                        .then((data) => {
+                            var stateRefreshButton = document.getElementById("stateRefreshButton");
+                            stateRefreshButton.click();
+                        });
+                    
+                }
+
+
+                video.addEventListener('play', () => {
+                    video._updateInterval = setInterval(() => {
+                        highlightCurrentTask()
+                    }, 1000);
+                }, true);
+
+                video.addEventListener('pause', () => clearInterval(video._updateInterval), true);
+            } else if (numTries < maxTries) {
+                setTimeout(timestampTaskFeedback, 1000);
+                numTries++; 
             }
 
-            video.addEventListener('play', () => {
-              video._updateInterval = setInterval(() => {
-                highlightCurrentTask()
-              }, 1000);
-            }, true);
 
-            video.addEventListener('pause', () => clearInterval(video._updateInterval), true);
         }
 
     </script>
