@@ -6,6 +6,9 @@ using System.Text.Json.Serialization;
 
 namespace hello_rusy.Data
 {
+    /// <summary>
+    /// Input to the Language service API 
+    /// </summary>
     public partial class SummarizeTextInput
     {
         [JsonPropertyName("displayName")]
@@ -73,7 +76,9 @@ namespace hello_rusy.Data
     }
 
 
-
+    /// <summary>
+    /// Output from language service API call 
+    /// </summary>
     public partial class TextSummarizerResult
     {
         [JsonPropertyName("jobId")]
@@ -175,7 +180,6 @@ namespace hello_rusy.Data
 
     public partial class Context
     {
-        //[JsonConverter(typeof(ParseStringConverter))]
         [JsonPropertyName("conversationItemId")]
         public string ConversationItemId { get; set; }
 

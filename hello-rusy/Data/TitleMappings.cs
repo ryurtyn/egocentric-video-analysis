@@ -3,6 +3,9 @@ using System.Text.Json.Serialization;
 
 namespace hello_rusy.Data
 {
+    /// <summary>
+    /// object that maps files to summarized titles 
+    /// </summary>
 	public class TitleMappings
 	{
         [JsonPropertyName("FilesList")]

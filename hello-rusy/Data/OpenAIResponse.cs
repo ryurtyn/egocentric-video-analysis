@@ -2,7 +2,9 @@
 using System.Text.Json.Serialization;
 namespace hello_rusy.Data
 {
-
+    /// <summary>
+    /// output to do list object 
+    /// </summary>
     public class ToDoList
     {
         [JsonPropertyName("todos")]
@@ -21,7 +23,9 @@ namespace hello_rusy.Data
         public string Task { get; set; }
     }
 
-    // Input for body to Chat Completion API Call 
+    /// <summary>
+    /// Input for body to Chat Completion API Call 
+    /// </summary>
     public class OpenAIRequest
 	{
         [JsonPropertyName("model")]
@@ -42,7 +46,9 @@ namespace hello_rusy.Data
     }
 
 
-    // Response from API Call to Chat Completion 
+    /// <summary>
+    /// Response from API Call to Chat Completion
+    /// </summary>    
     public partial class OpenAiResponse
     {
         [JsonPropertyName("id")]
@@ -81,15 +87,6 @@ namespace hello_rusy.Data
         [JsonPropertyName("finish_reason")]
         public string FinishReason { get; set; }
     }
-
-    //public partial class Message
-    //{
-    //    [JsonPropertyName("role")]
-    //    public string Role { get; set; }
-
-    //    [JsonPropertyName("content")]
-    //    public string Content { get; set; }
-    //}
 
     public partial class Usage
     {

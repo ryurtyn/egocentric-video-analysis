@@ -3,6 +3,9 @@ using System.Text.Json.Serialization;
 
 namespace hello_rusy.Data
 {
+    /// <summary>
+    /// format for video metadata information 
+    /// </summary>
 	public class VideoMetadata
 	{
         [JsonPropertyName("FileName")]

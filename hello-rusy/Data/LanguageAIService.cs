@@ -7,8 +7,16 @@ using Azure.Core;
 
 namespace hello_rusy.Data
 {
+    /// <summary>
+    /// Class interacts with language service API to generate summarized title 
+    /// </summary>
 	public class LanguageAIService
     {
+        /// <summary>
+        /// Convert list of transcripts to input format for OpenAI API call 
+        /// </summary>
+        /// <param name="transcripts"> list of transcript strings </param>
+        /// <returns> summarize text input object </returns>
         public SummarizeTextInput MapVideoTranscriptToSummarizerInput(List<string> transcripts)
         {
             SummarizeTextInput summarizerInput = new SummarizeTextInput()
@@ -51,6 +59,13 @@ namespace hello_rusy.Data
             return summarizerInput;
         }
 
+        /// <summary>
+        /// waits until text summary has returned a result and returns the result 
+        /// </summary>
+        /// <param name="config"> configuration object </param>
+        /// <param name="transcripts"> list of transcript strings</param>
+        /// <returns> text summarizer result object </returns>
+        /// <exception cref="Exception"></exception>
         public async Task<TextSummarizerResult> getTextSummary(EgocentricVideoConfig config, List<string> transcripts)
         {
             SummarizeTextInput inputBody = MapVideoTranscriptToSummarizerInput(transcripts);
@@ -85,25 +100,31 @@ namespace hello_rusy.Data
 
         }
 
+        /// <summary>
+        /// calls Language service API to get a summary response 
+        /// </summary>
+        /// <param name="subscriptionKey"> language service subscription key </param>
+        /// <param name="operationLocation"> language service operation location </param>
+        /// <returns> text summarizer result </returns>
         private async Task<TextSummarizerResult> getSummaryResponse(string subscriptionKey, string operationLocation)
         {
             HttpClient client = new HttpClient();
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, operationLocation);
             request.Content = new StringContent("application/json");//CONTENT-TYPE header
-
             request.Headers.Add("Ocp-Apim-Subscription-Key", subscriptionKey);
-
             var response = await client.SendAsync(request);
-
             response.EnsureSuccessStatusCode();
-
             string jsonContent = await response.Content.ReadAsStringAsync();
-
             TextSummarizerResult summaryResponse = JsonSerializer.Deserialize<TextSummarizerResult>(jsonContent)!;
-
             return summaryResponse;
         }
 
+        /// <summary>
+        /// calls language service API to retrieve operation location
+        /// </summary>
+        /// <param name="subscriptionKey"> language service subscription key </param>
+        /// <param name="requestObject"> api request object </param>
+        /// <returns> operation location string </returns>
         private async Task<string> getOperationLocation(string subscriptionKey, SummarizeTextInput requestObject)
         {
             HttpClient client = new HttpClient();
@@ -124,6 +145,11 @@ namespace hello_rusy.Data
 
         }
 
+        /// <summary>
+        /// extracts summarized title from text summarizer result 
+        /// </summary>
+        /// <param name="response"> text summarizer result from language service api </param>
+        /// <returns> summarized title string </returns>
         public string GetSummarizedTitle(TextSummarizerResult response)
         {
             List<string> summaryTexts = new List<string>();
@@ -158,11 +184,7 @@ namespace hello_rusy.Data
             {
                 return "no summaries found";
             }
-            
-
         }
-
-
     }
 }
 

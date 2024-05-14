@@ -3,6 +3,9 @@ using System.Text.Json.Serialization;
 
 namespace hello_rusy.Data
 {
+    /// <summary>
+    /// Metadata format to save video indexer results 
+    /// </summary>
 	public class VideoIndexerMetadata
 	{
         [JsonPropertyName("transcripts")]
