@@ -21,8 +21,10 @@
   <ItemGroup>
     <Content Remove="wwwroot\css\Styles.css" />
     <Content Remove="wwwroot\styles.css" />
+    <Content Remove="wwwroot\ego-exo-view.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="wwwroot\my-styles.css" />
+    <None Include="wwwroot\ego-exo-view.png" />
   </ItemGroup>
 </Project>
