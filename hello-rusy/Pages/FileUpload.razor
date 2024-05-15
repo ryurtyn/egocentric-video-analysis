@@ -9,26 +9,38 @@
 
 <PageTitle>File upload</PageTitle>
 
-<h1>Upload</h1>
+<div class="page-wrapper">
+    <div class="content-wrapper">
+        <h1>Upload</h1>
 
-<InputFile OnChange="HandleFileSelection" />
-<button @onclick="UploadFile">Upload</button>
+        <InputFile OnChange="HandleFileSelection" />
+        <button @onclick="UploadFile">Upload</button>
 
-@if (uploadSuccess)
-{
-    <div class="alert alert-success" role="alert">
-        File uploaded successfully!
+        @if (uploadSuccess)
+        {
+            <div class="alert alert-success" role="alert">
+                File uploaded successfully!
+            </div>
+            <p>
+                Filename: @uploadFileName
+            </p>
+        }
+        else if (fileSubmitted)
+        {
+            <div class="alert alert-success" role="alert">
+                File uploading, Please wait.
+            </div>
+        }
     </div>
-    <p>
-        Filename: @uploadFileName
-    </p>
-} else if (fileSubmitted)
-{
-    <div class="alert alert-success" role="alert">
-        File uploading, Please wait.
-    </div>
-}
+    <footer style="text-align: center; font-size: small; margin-top: 50px;">
+        <p>
+            Files uploaded will not be processed without author's approval due to security and cost. To see existing examples of processed videos, navigate to the View tab.
+            <br />
+            Contact: Ruslana Yurtyn | Email: rny4@cornell.edu
+        </p>
 
+    </footer>
+</div>
 
 @code {
     private IBrowserFile file;
@@ -101,3 +113,4 @@
         return fileName;
     }
 }
+
