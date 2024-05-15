@@ -17,14 +17,16 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Extensions\" />
+    <Folder Include="wwwroot\images\" />
   </ItemGroup>
   <ItemGroup>
     <Content Remove="wwwroot\css\Styles.css" />
     <Content Remove="wwwroot\styles.css" />
-    <Content Remove="wwwroot\ego-exo-view.png" />
+    <Content Remove="wwwroot\images\" />
+    <Content Remove="wwwroot\images\ego-exo-view.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="wwwroot\my-styles.css" />
-    <None Include="wwwroot\ego-exo-view.png" />
+    <Content Include="wwwroot\images\ego-exo-view.png" />
   </ItemGroup>
 </Project>

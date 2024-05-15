@@ -22,15 +22,17 @@
         <div style="flex: 3; min-width: 300px;">
             <button class="state-refresh-button" id="stateRefreshButton" @onclick="() => StateHasChanged()"></button>
             <ol>
-                @for (int i = 0; i < todos.ToDos.Count; i++)
-                    {
-                        bool isActive = activeToDoItems.Contains(i);
-                        <li>
-                            <button class="btn-primary@(isActive?"-active":"")" id="todo-buttons-@i" @onclick="() => SeekTo(todos.ToDos[i].Timestamp)">&#9205;</button>
-                            @todos.ToDos[i].Task
-                        </li>
-                    }
-                </ol>
+                @foreach (var item in todos.ToDos.Select((value, index) => (value, index)))
+                {
+                    var (value, index) = item;
+                    Console.WriteLine($"Index: {index}, Value: {value}");
+                    bool isActive = activeToDoItems.Contains(index);
+                    <li>
+                        <button class="btn-primary@(isActive?"-active":"")" id="todo-buttons-@index" @onclick="() => SeekTo(value.Timestamp)">&#9205;</button>
+                        @value.Task
+                    </li>
+                }
+            </ol>
         </div>
 
         <div style="flex: 2; min-width: 300px; max-width: 600px;">
