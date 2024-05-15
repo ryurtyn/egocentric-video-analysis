@@ -20,7 +20,7 @@
     <h2>Tasks</h2>
     <div style="display: flex; flex-wrap: wrap; gap: 20px;">
         <div style="flex: 3; min-width: 300px;">
-            <button class="state-refresh-button" id="stateRefreshButton" @onclick="() => StateHasChanged()"></button>
+
             <ol>
                 @foreach (var item in todos.ToDos.Select((value, index) => (value, index)))
                 {
@@ -44,7 +44,7 @@
             @code {
                 private ElementReference videoElement; // Reference to the video element
                 public string videoUrl; // URL of the video to play
-                // Call JavaScript to attach event listeners once the video element is available
+                                        // Call JavaScript to attach event listeners once the video element is available
                 protected override async Task OnAfterRenderAsync(bool firstRender)
                 {
                     if (firstRender)
@@ -70,6 +70,7 @@
             }
         </p>
     </div>
+    <button class="state-refresh-button" id="stateRefreshButton" @onclick="() => StateHasChanged()"></button>
 
 }
 else
@@ -153,47 +154,49 @@ else
     }
 
     public static List<int> FindActiveIndices(List<float> timestamps, float currentTimestamp)
+    {
+        float maxValueUnderCurrent = int.MinValue;
+        List<int> active_indices = new List<int>();
+
+        foreach (var timestamp in timestamps)
         {
-            float maxValueUnderCurrent = int.MinValue;
-            List<int> active_indices = new List<int>();
-
-            foreach (var timestamp in timestamps)
+            if (timestamp < currentTimestamp && timestamp > maxValueUnderCurrent)
             {
-                if (timestamp < currentTimestamp && timestamp > maxValueUnderCurrent)
-                {
-                    maxValueUnderCurrent = timestamp;
-                }
+                maxValueUnderCurrent = timestamp;
             }
-
-            for (int i = 0; i < timestamps.Count; i++ )
-            {
-                if (timestamps[i] == maxValueUnderCurrent)
-                {
-                    active_indices.Add(i);
-                }
-            }
-            return active_indices;
         }
+
+        for (int i = 0; i < timestamps.Count; i++)
+        {
+            if (timestamps[i] == maxValueUnderCurrent)
+            {
+                active_indices.Add(i);
+            }
+        }
+        return active_indices;
+    }
 
     [JSInvokable]
     public static Task<List<int>> ChangeActiveTimestamp(float currentTime)
     {
-            if (todos != null) {
-                List<ToDoItem> todoItems = todos.ToDos;
-                List<float> timestamps = new List<float>();
-                foreach (ToDoItem item in todoItems)
-                {
-                    int timestamp = ConvertTimeToSeconds(item.Timestamp);
-                    timestamps.Add((float)timestamp);
-                }
-                List<int> activeIndices = FindActiveIndices(timestamps, currentTime);
-                activeToDoItems = activeIndices;
-                return Task.FromResult(activeIndices);
-                
-            } else
+        if (todos != null)
+        {
+            List<ToDoItem> todoItems = todos.ToDos;
+            List<float> timestamps = new List<float>();
+            foreach (ToDoItem item in todoItems)
             {
-                activeToDoItems = new List<int>();
-                return Task.FromResult(new List<int>());
+                int timestamp = ConvertTimeToSeconds(item.Timestamp);
+                timestamps.Add((float)timestamp);
             }
+            List<int> activeIndices = FindActiveIndices(timestamps, currentTime);
+            activeToDoItems = activeIndices;
+            return Task.FromResult(activeIndices);
+
         }
+        else
+        {
+            activeToDoItems = new List<int>();
+            return Task.FromResult(new List<int>());
+        }
+    }
 }

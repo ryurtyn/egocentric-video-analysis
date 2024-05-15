@@ -23,7 +23,7 @@ else
             <th> Title</th>
             <th> Created On</th>
             <th> Last Processed</th>
-            <th> Actions</th> 
+            @*<th> Actions</th>*@ 
         </tr>
     </thead >
     <tbody >
@@ -48,8 +48,9 @@ else
                         @mapping.ProcessedDate
                     </td>
 
+                    <!--
                     <td>
-                        @*Button to trigger data processing*@
+                        @*Button to trigger data processing -- uncomment block to allow for user to process data*@
                         @if (!(mapping.isProcessing))
                         {
                             <button class="btn-primary" @onclick="(async () => await ProcessButtonClick(mapping, config))"> Process</button>
@@ -60,6 +61,7 @@ else
                             <span class="spinner"></span>
                         }
                     </td>
+                    -->
 
                 </tr>
         }
