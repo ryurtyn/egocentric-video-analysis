@@ -18,12 +18,24 @@ a, .btn-link {
     border-color: #1861ac;
 }
 
+    .btn-primary:hover {
+        color: #fff;
+        background-color: #165ca1;
+        border-color: #1861ac;
+    }
+
 
 .btn-primary-active {
     color: #fff;
     background-color: #54d175;
     border-color: #328046;
 }
+
+    .btn-primary-active:hover {
+        color: #fff;
+        background-color: #51c971;
+        border-color: #328046;
+    }
 
 .state-refresh-button {
     width: 0px;
